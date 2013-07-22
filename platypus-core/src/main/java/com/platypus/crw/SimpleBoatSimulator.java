@@ -159,7 +159,6 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
                     if (!_isAutonomous.get()) {
                         // If we are not autonomous, do nothing
                         sendWaypointUpdate(WaypointState.PAUSED);
-                        return;
                     } else if (_waypoints.length == 0) {
                         // If we are finished with waypoints, stop in place
                         sendWaypointUpdate(WaypointState.DONE);

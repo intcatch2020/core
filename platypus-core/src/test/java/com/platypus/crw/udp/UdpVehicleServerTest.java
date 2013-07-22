@@ -215,7 +215,7 @@ public class UdpVehicleServerTest {
                 latch.countDown();
             }
         });
-        server.startCamera(1, 1.0, 64, 64);
+        server.startCamera(2, 1.0, 640, 480);
         
         // If we haven't received a pose in a full second, something is wrong
         try {
@@ -287,7 +287,7 @@ public class UdpVehicleServerTest {
                 latch.countDown();
             }
         });
-        server.startCamera(1, 1.0, 64, 64);
+        server.startCamera(2, 1.0, 640, 480);
         
         // If we haven't received a pose in a full second, something is wrong
         try {
