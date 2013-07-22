@@ -8,10 +8,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -125,13 +127,17 @@ public class UdpServer {
             _buffer = new ByteArrayInputStream(packet.getData());
             stream = new DataInputStream(_buffer);
 
-            // Extract the socket address data from the packet
-            InetAddress foo = packet.getAddress();
-            int bar = packet.getPort();
-            
-            // Put in some dummy hostname and reconstruct
-            CrwNetworkUtils.injectHostname(foo, "DO_NOT_RESOLVE");
-            source = new InetSocketAddress(foo, bar);
+            // Extract the socket address data from the packet,
+            // put in a blank hostname and reconstruct (to avoid DNS lookups)
+            InetAddress addr = InetAddress.getLoopbackAddress();
+            int port = 9999;
+            try {
+                addr = InetAddress.getByAddress(null, packet.getAddress().getAddress());
+                port = packet.getPort();
+            } catch (UnknownHostException e) {
+                logger.log(Level.WARNING, "Failed to get valid source", e);
+            }
+            source = new InetSocketAddress(addr, port);
             
             // Extract the ticket from the data payload
             long t = UdpConstants.NO_TICKET;
@@ -405,6 +411,11 @@ public class UdpServer {
      * @param response the response to be sent
      */
     public void respond(Response response) {
+        
+        // Trivially ignore blank requests;
+        if (response == null)
+            return;
+        
         try {
             QueuedResponse qr = new QueuedResponse(response, getRetransmissionTimeout());
             _responses.add(qr);
@@ -430,6 +441,11 @@ public class UdpServer {
      * @param destinations the destination addresses to which it will be sent
      */
     public void bcast(Response response, Collection<SocketAddress> destinations) {
+        
+        // Trivially ignore blank requests;
+        if (response == null)
+            return;
+        
         try {
             // TODO: this shouldn't generate a ticket!
             DatagramPacket packet = new QueuedResponse(response, getRetransmissionTimeout()).toPacket();
@@ -458,6 +474,11 @@ public class UdpServer {
      * @param response the response to be sent
      */
     public void send(Response response) {
+        
+        // Trivially ignore blank requests;
+        if (response == null)
+            return;
+        
         try {
             // TODO: this shouldn't generate a ticket!
             DatagramPacket packet = new QueuedResponse(response, getRetransmissionTimeout()).toPacket();

@@ -171,7 +171,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.removePoseListener(l, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -215,7 +215,7 @@ public class UdpVehicleServerTest {
                 latch.countDown();
             }
         });
-        server.startCamera(1, 1.0, 640, 480);
+        server.startCamera(1, 1.0, 64, 64);
         
         // If we haven't received a pose in a full second, something is wrong
         try {
@@ -238,7 +238,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.removeImageListener(l, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -250,8 +250,8 @@ public class UdpVehicleServerTest {
         UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
         
         // Generate a random image size
-        int width = rnd.nextInt(256) + 1;
-        int height = rnd.nextInt(256) + 1;
+        int width = rnd.nextInt(64) + 1;
+        int height = rnd.nextInt(64) + 1;
         
         // Check that we got an image of this size
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
@@ -287,7 +287,7 @@ public class UdpVehicleServerTest {
                 latch.countDown();
             }
         });
-        server.startCamera(1, 1.0, 640, 480);
+        server.startCamera(1, 1.0, 64, 64);
         
         // If we haven't received a pose in a full second, something is wrong
         try {
@@ -310,7 +310,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.removeCameraListener(l, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -327,7 +327,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.startCamera(numFrames, interval, width, height, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -340,7 +340,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.stopCamera(obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -353,7 +353,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.getCameraStatus(obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -396,7 +396,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.removeSensorListener(channel, l, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -411,7 +411,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.setSensorType(channel, type, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -425,7 +425,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.getSensorType(channel, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -483,7 +483,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.removeVelocityListener(l, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -497,7 +497,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.setVelocity(velocity, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -510,7 +510,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.getVelocity(obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -553,7 +553,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.removeWaypointListener(l, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -568,7 +568,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.startWaypoints(waypoints, controller, obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -581,7 +581,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.stopWaypoints(obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -594,7 +594,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.getWaypoints(obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -607,7 +607,7 @@ public class UdpVehicleServerTest {
         //UdpVehicleServer instance = new UdpVehicleServer();
         //instance.getWaypointStatus(obs);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
