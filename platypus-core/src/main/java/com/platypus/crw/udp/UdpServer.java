@@ -1,6 +1,5 @@
 package com.platypus.crw.udp;
 
-import com.platypus.crw.CrwNetworkUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -8,7 +7,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -129,7 +127,7 @@ public class UdpServer {
 
             // Extract the socket address data from the packet,
             // put in a blank hostname and reconstruct (to avoid DNS lookups)
-            InetAddress addr = InetAddress.getLoopbackAddress();
+            InetAddress addr = null;
             int port = 9999;
             try {
                 addr = InetAddress.getByAddress(null, packet.getAddress().getAddress());
@@ -284,7 +282,7 @@ public class UdpServer {
                 Request request = new Request(_packet);
                 
                 // Extract the command string (to check if this is an ACK)
-                String cmd = null;
+                String cmd;
                 try {
                     cmd = request.stream.readUTF().trim();
                     request.reset();
@@ -335,7 +333,7 @@ public class UdpServer {
         
         @Override
         public void run() {
-            QueuedResponse response = null;
+            QueuedResponse response;
 
             while(_socket.isBound() && !_socket.isClosed()) {
                 // Wait for next response that has timed out or requires transmission
