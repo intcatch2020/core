@@ -4,4 +4,8 @@
 *.jar
 *.war
 *.ear
+
+# Maven build files # 
 /platypus-core/target/
+/platypus-core/pom.xml.releaseBackup
+/platypus-core/release.properties
