@@ -16,8 +16,8 @@ import com.platypus.crw.data.UtmPose;
  * @author Pras Velagapudi <psigen@gmail.com>
  */
 public interface VehicleServer {
-	
-	public enum SensorType { ANALOG, DIGITAL, TE, DEPTH, WATERCANARY, BATTERY, UNKNOWN };
+
+	public enum SensorType { ANALOG, DIGITAL, ES2, HDS_DEPTH, HDS_TEMP, GPS,ATLAS_DO,ATLAS_PH, BATTERY, UNKNOWN };
 	public enum WaypointState { GOING, PAUSED, DONE, CANCELLED, OFF, UNKNOWN };
 	public enum CameraState { CAPTURING, DONE, CANCELLED, OFF, UNKNOWN };
 
@@ -28,9 +28,9 @@ public interface VehicleServer {
 	
 	public void addImageListener(ImageListener l);
 	public void removeImageListener(ImageListener l);
-        public byte[] captureImage(int width, int height);
-        
-        public void addCameraListener(CameraListener l);
+	public byte[] captureImage(int width, int height);
+
+	public void addCameraListener(CameraListener l);
 	public void removeCameraListener(CameraListener l);
 	public void startCamera(int numFrames, double interval, int width, int height);
 	public void stopCamera();
@@ -46,16 +46,16 @@ public interface VehicleServer {
 	public void removeVelocityListener(VelocityListener l);
 	public void setVelocity(Twist velocity);
 	public Twist getVelocity();
-	
-        public void addWaypointListener(WaypointListener l);
+
+	public void addWaypointListener(WaypointListener l);
 	public void removeWaypointListener(WaypointListener l);
 	public void startWaypoints(UtmPose[] waypoint, String controller);
 	public void stopWaypoints();
 	public UtmPose[] getWaypoints();
 	public WaypointState getWaypointStatus();
-	
-        public boolean isConnected();
-        public boolean isAutonomous();
+
+	public boolean isConnected();
+	public boolean isAutonomous();
 	public void setAutonomous(boolean auto);
         
 	public void setGains(int axis, double[] gains);

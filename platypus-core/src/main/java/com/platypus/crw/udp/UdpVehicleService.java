@@ -221,8 +221,10 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     }
                     break;
                 case CMD_SET_SENSOR_TYPE:
-                    _vehicleServer.setSensorType(req.stream.readInt(), 
-                            VehicleServer.SensorType.values()[req.stream.readByte()]);
+                    _vehicleServer.setSensorType(
+                            req.stream.readInt(),
+                            VehicleServer.SensorType.values()[Math.max(req.stream.readByte(),
+                                                              VehicleServer.SensorType.values().length - 1)]);
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp); // Send void response
                     break;

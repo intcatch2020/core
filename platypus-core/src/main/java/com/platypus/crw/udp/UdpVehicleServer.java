@@ -313,7 +313,8 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     obs.completed(CameraState.values()[req.stream.readByte()]);
                     return;
                 case CMD_GET_SENSOR_TYPE:
-                    obs.completed(SensorType.values()[req.stream.readByte()]);
+                    obs.completed(SensorType.values()[Math.max(req.stream.readByte(),
+                                                               SensorType.values().length)]);
                     return;
                 case CMD_GET_NUM_SENSORS:
                     obs.completed(req.stream.readInt());
