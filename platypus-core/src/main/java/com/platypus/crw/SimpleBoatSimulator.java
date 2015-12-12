@@ -73,15 +73,20 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
 
             // Generate simulated sensor data
             SensorData reading = new SensorData();
+            reading.channel = 0;
             reading.data = new double[3];
-            reading.type = SensorType.TE;
+            reading.type = SensorType.ES2;
 
             Random random = new Random();
-            reading.data[0] = (_utmPose.pose.getX()) + 10 * random.nextGaussian();
-            reading.data[1] = (_utmPose.pose.getY());
-            reading.data[2] = (_utmPose.pose.getZ());
+            reading.data[0] = random.nextGaussian() + 10;
+            reading.data[1] = random.nextGaussian() + 20;
+            reading.data[2] = random.nextGaussian() + 30;
 
             sendSensor(0, reading);
+            reading.channel = 1;
+            sendSensor(1, reading);
+            reading.channel = 2;
+            sendSensor(2, reading);
         }
     };
     

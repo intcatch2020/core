@@ -24,9 +24,9 @@ public class UdpConstants {
     public static final int REGISTRATION_TIMEOUT_COUNT = 5;
 
     public static final long INITIAL_RETRY_RATE_NS = TimeUnit.NANOSECONDS.convert(200, TimeUnit.MILLISECONDS);
-    public static final long RETRANSMISSION_DELAY_NS = TimeUnit.NANOSECONDS.convert(20, TimeUnit.MILLISECONDS);;
+    public static final long RETRANSMISSION_DELAY_NS = TimeUnit.NANOSECONDS.convert(100, TimeUnit.MILLISECONDS);
     public static final int RETRY_COUNT = 4;
-    public static final long TIMEOUT_NS = (RETRY_COUNT + 1) * INITIAL_RETRY_RATE_NS;
+    public static final long TIMEOUT_NS = TimeUnit.NANOSECONDS.convert(10, TimeUnit.SECONDS);
     public static final int NO_TICKET = -1;
     public static final int TICKET_CACHE_SIZE = 100;
 
@@ -162,7 +162,7 @@ public class UdpConstants {
     public static SensorData readSensorData(DataInputStream in) throws IOException {
         SensorData sensor = new SensorData();
         sensor.channel = in.readInt();
-        sensor.type = SensorType.values()[in.readByte()];
+        sensor.type = SensorType.values()[Math.max(in.readByte(), SensorType.values().length - 1)];
         sensor.data = new double[in.readInt()];
         for (int i = 0; i < sensor.data.length; ++i)
             sensor.data[i] = in.readDouble();
