@@ -65,7 +65,7 @@ public class UdpServer {
     
     public UdpServer() {
         
-        DatagramSocket socket = null;
+        DatagramSocket socket;
         try {
             socket = new DatagramSocket();
             socket.setSendBufferSize(UdpConstants.MAX_PACKET_SIZE);
@@ -79,7 +79,7 @@ public class UdpServer {
     
     public UdpServer(int port) {
         
-        DatagramSocket socket = null;
+        DatagramSocket socket;
         try {
             socket = new DatagramSocket(port);
         } catch (SocketException e) {
@@ -109,9 +109,9 @@ public class UdpServer {
     }
     
     public interface RequestHandler {
-        public void received(Request req);
+        void received(Request req);
         // TODO: should we save the response for some reason?
-        public void timeout(long ticket, SocketAddress destination);
+        void timeout(long ticket, SocketAddress destination);
     }
 
     public static class Request {
@@ -180,7 +180,7 @@ public class UdpServer {
                 throw new RuntimeException("Failed to write ticket to response buffer", e);
             }
         }
-        
+
         private Response(long t, SocketAddress d, DataOutputStream s, ByteArrayOutputStream b) {
             _buffer = b;
             stream = s;
@@ -234,12 +234,10 @@ public class UdpServer {
             timeout = System.nanoTime() + delay;
         }
 
-        @Override
         public long getDelay(TimeUnit unit) {
             return unit.convert(timeout - System.nanoTime(), TimeUnit.NANOSECONDS);
         }
 
-        @Override
         public int compareTo(Delayed o) {
             if (o instanceof QueuedResponse) {
                 return Long.signum(timeout - ((QueuedResponse)o).timeout);
@@ -257,8 +255,7 @@ public class UdpServer {
 
         byte[] _buffer = new byte[UdpConstants.MAX_PACKET_SIZE];
         DatagramPacket _packet = new DatagramPacket(_buffer, _buffer.length);
-        
-        @Override
+
         public void run() {
             while(_socket.isBound() && !_socket.isClosed()) {
                 
@@ -330,8 +327,6 @@ public class UdpServer {
     }
     
     class Responder implements Runnable {
-        
-        @Override
         public void run() {
             QueuedResponse response;
 
@@ -498,7 +493,7 @@ public class UdpServer {
      * Removes all responses that have the corresponding ticket to an already
      * acknowledged response 
      *
-     * @param ticket
+     * @param ticket the ticket number that will be acknowledged
      */
     public void acknowledge(long ticket) {
         Iterator<QueuedResponse> itr = _responses.iterator();
