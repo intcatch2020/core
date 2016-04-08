@@ -144,7 +144,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
         }
     }
 
-    @Override
     public void received(Request req) {
 
         try {
@@ -343,7 +342,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
 
     }
 
-    @Override
     public void timeout(long ticket, SocketAddress destination) {
         String warning = "No response for: " + ticket + " @ " + destination;
         logger.warning(warning);
@@ -364,7 +362,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
     
     private class StreamHandler implements PoseListener, ImageListener, CameraListener, SensorListener, VelocityListener, WaypointListener {
 
-        @Override
         public void receivedPose(UtmPose pose) {
             // Quickly check if anyone is listening
             synchronized(_poseListeners) {
@@ -386,7 +383,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             }
         }
 
-        @Override
         public void receivedImage(byte[] image) {
             // Quickly check if anyone is listening
             synchronized(_imageListeners) {
@@ -428,7 +424,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             }
         }
 
-        @Override
         public void imagingUpdate(CameraState status) {
             // Quickly check if anyone is listening
             synchronized(_cameraListeners) {
@@ -450,7 +445,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             }
         }
 
-        @Override
         public void receivedSensor(SensorData sensor) {
             // Quickly check if anyone is listening
             synchronized(_sensorListeners) {
@@ -473,7 +467,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             }
         }
 
-        @Override
         public void receivedVelocity(Twist velocity) {
             // Quickly check if anyone is listening
             synchronized(_velocityListeners) {
@@ -495,7 +488,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             }
         }
 
-        @Override
         public void waypointUpdate(WaypointState status) {
             // Quickly check if anyone is listening
             synchronized(_waypointListeners) {
