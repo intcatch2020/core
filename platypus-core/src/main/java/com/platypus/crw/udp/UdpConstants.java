@@ -27,7 +27,7 @@ public class UdpConstants {
     public static final long RETRANSMISSION_DELAY_NS = TimeUnit.NANOSECONDS.convert(100, TimeUnit.MILLISECONDS);
     public static final int RETRY_COUNT = 4;
     public static final long TIMEOUT_NS = TimeUnit.NANOSECONDS.convert(10, TimeUnit.SECONDS);
-    public static final int NO_TICKET = -1;
+    public static final long NO_TICKET = -1;
     public static final int TICKET_CACHE_SIZE = 100;
 
     public static final int INITIAL_PACKET_SIZE = 512;
