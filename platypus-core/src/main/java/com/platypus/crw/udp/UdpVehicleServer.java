@@ -31,7 +31,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// TODO: finish this class!
 /**
  * A vehicle server proxy that uses UDP to connect to the vehicle and forwards
  * functions calls and events.
@@ -225,8 +224,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             }
         }
     }
-    
-    @Override
+
     public void received(Request req) {
         try {
             final String command = req.stream.readUTF();
@@ -376,15 +374,13 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void timeout(long ticket, SocketAddress destination) {
         FunctionObserver obs = _ticketMap.remove(ticket);
         if (obs != null) {
             obs.failed(FunctionObserver.FunctionError.TIMEOUT);
         }
     }
-    
-    @Override
+
     public void addPoseListener(PoseListener l, FunctionObserver<Void> obs) {
         synchronized (_poseListeners) {
             _poseListeners.add(l);
@@ -394,7 +390,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void removePoseListener(PoseListener l, FunctionObserver<Void> obs) {
         synchronized (_poseListeners) {
             _poseListeners.remove(l);
@@ -404,7 +399,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void setPose(UtmPose pose, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -419,8 +413,12 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_SET_POSE.str);
             UdpConstants.writePose(response.stream, pose);
-            if (obs != null) _ticketMap.put(ticket, obs);
-            _udpServer.respond(response);
+            if (obs != null) {
+                _ticketMap.put(ticket, obs);
+                _udpServer.respond(response);
+            } else {
+                _udpServer.send(response);
+            }
         } catch (IOException e) {
             // TODO: Should I also flag something somewhere?
             if (obs != null) {
@@ -429,31 +427,27 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void getPose(FunctionObserver<UtmPose> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
-        
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
-        
+
+        long ticket = _ticketCounter.incrementAndGet();
+
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_POSE.str);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 
-    @Override
     public void addImageListener(ImageListener l, FunctionObserver<Void> obs) {
         synchronized (_imageListeners) {
             _imageListeners.add(l);
@@ -463,7 +457,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void removeImageListener(ImageListener l, FunctionObserver<Void> obs) {
         synchronized (_imageListeners) {
             _imageListeners.remove(l);
@@ -473,7 +466,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void captureImage(int width, int height, FunctionObserver<byte[]> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -481,9 +473,9 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             }
             return;
         }
-        
+
         long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
-        
+
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_CAPTURE_IMAGE.str);
@@ -499,7 +491,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void addCameraListener(CameraListener l, FunctionObserver<Void> obs) {
         synchronized (_cameraListeners) {
             _cameraListeners.add(l);
@@ -509,7 +500,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void removeCameraListener(CameraListener l, FunctionObserver<Void> obs) {
         synchronized (_cameraListeners) {
             _cameraListeners.remove(l);
@@ -519,7 +509,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void startCamera(int numFrames, double interval, int width, int height, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -547,7 +536,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void stopCamera(FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -571,31 +559,27 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void getCameraStatus(FunctionObserver<CameraState> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_CAMERA_STATUS.str);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 
-    @Override
     public void addSensorListener(int channel, SensorListener l, FunctionObserver<Void> obs) {
         synchronized (_sensorListeners) {
             // If there were no previous listeners for the channel, create a list
@@ -611,7 +595,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void removeSensorListener(int channel, SensorListener l, FunctionObserver<Void> obs) {
         synchronized (_sensorListeners) {
             // If there is no list of listeners, there is nothing to remove
@@ -632,7 +615,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void setSensorType(int channel, SensorType type, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -658,56 +640,49 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void getSensorType(int channel, FunctionObserver<SensorType> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_SENSOR_TYPE.str);
             response.stream.writeInt(channel);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 
-    @Override
     public void getNumSensors(FunctionObserver<Integer> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_NUM_SENSORS.str);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 
-    @Override
     public void addVelocityListener(VelocityListener l, FunctionObserver<Void> obs) {
         synchronized (_velocityListeners) {
             _velocityListeners.add(l);
@@ -717,7 +692,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void removeVelocityListener(VelocityListener l, FunctionObserver<Void> obs) {
         synchronized (_velocityListeners) {
             _velocityListeners.remove(l);
@@ -727,7 +701,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void setVelocity(Twist velocity, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -742,8 +715,12 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_SET_VELOCITY.str);
             UdpConstants.writeTwist(response.stream, velocity);
-            if (obs != null) _ticketMap.put(ticket, obs);
-            _udpServer.respond(response);
+            if (obs != null) {
+                _ticketMap.put(ticket, obs);
+                _udpServer.respond(response);
+            } else {
+                _udpServer.send(response);
+            }
         } catch (IOException e) {
             // TODO: Should I also flag something somewhere?
             if (obs != null) {
@@ -752,31 +729,27 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void getVelocity(FunctionObserver<Twist> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_VELOCITY.str);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 
-    @Override
     public void addWaypointListener(WaypointListener l, FunctionObserver<Void> obs) {
         synchronized (_waypointListeners) {
             _waypointListeners.add(l);
@@ -786,7 +759,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void removeWaypointListener(WaypointListener l, FunctionObserver<Void> obs) {
         synchronized (_waypointListeners) {
             _waypointListeners.remove(l);
@@ -796,7 +768,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void startWaypoints(UtmPose[] waypoints, String controller, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -825,7 +796,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void stopWaypoints(FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -849,103 +819,90 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void getWaypoints(FunctionObserver<UtmPose[]> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_WAYPOINTS.str);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 
-    @Override
     public void getWaypointStatus(FunctionObserver<WaypointState> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_WAYPOINT_STATUS.str);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 
-    @Override
     public void isConnected(FunctionObserver<Boolean> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_IS_CONNECTED.str);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 
-    @Override
     public void isAutonomous(FunctionObserver<Boolean> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_IS_AUTONOMOUS.str);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 
-    @Override
     public void setAutonomous(boolean auto, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -970,7 +927,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void setGains(int axis, double[] gains, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -999,28 +955,25 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    @Override
     public void getGains(int axis, FunctionObserver<double[]> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_vehicleServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_GAINS.str);
             response.stream.writeInt(axis);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
     
@@ -1031,25 +984,23 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
      * @param obs an observer which will be called when the list is received
      */
     public void getVehicleServices(FunctionObserver<Map<SocketAddress, String>> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
         if (_registryServer == null) {
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
             return;
         }
         
-        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        long ticket = _ticketCounter.incrementAndGet();
         
         try {
             Response response = new Response(ticket, _registryServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_LIST.str);
-            if (obs != null) _ticketMap.put(ticket, obs);
+            _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
-            if (obs != null) {
-                obs.failed(FunctionObserver.FunctionError.ERROR);
-            }
+            obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
 }
