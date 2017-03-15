@@ -34,7 +34,8 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import robotutils.Pose3D;
+import com.platypus.crw.data.Pose3D;
+import java.net.InetSocketAddress;
 import static org.junit.Assert.*;
 
 /**
@@ -45,6 +46,8 @@ public class UdpVehicleServerTest {
     
     UdpVehicleService service;
     SimpleBoatSimulator sbs;
+    int port;
+    InetSocketAddress localhost;
     Random rnd;
     
     public UdpVehicleServerTest() {
@@ -62,6 +65,8 @@ public class UdpVehicleServerTest {
     public void setUp() {
         sbs = new SimpleBoatSimulator();
         service = new UdpVehicleService(sbs);
+        port = ((InetSocketAddress)service.getSocketAddress()).getPort();
+        localhost = new InetSocketAddress("localhost", port);
         rnd = new Random();
     }
     
@@ -77,7 +82,7 @@ public class UdpVehicleServerTest {
     @Test
     public void testShutdown() {
         System.out.println("shutdown");
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         instance.shutdown();
         
         // Make sure the UDP socket was closed
@@ -110,13 +115,12 @@ public class UdpVehicleServerTest {
         assertEquals("Server reports connected to null service", 
                 false, server.isConnected());
         
-        instance.setVehicleService(service.getSocketAddress());
+        instance.setVehicleService(localhost);
         assertEquals("Server reports not connected to service",
                 true, server.isConnected());
         
         instance.shutdown();
     }
-
     /**
      * Test of getVehicleService method, of class UdpVehicleServer.
      */
@@ -125,9 +129,9 @@ public class UdpVehicleServerTest {
         System.out.println("getVehicleService");
         UdpVehicleServer instance = new UdpVehicleServer();
         
-        instance.setVehicleService(service.getSocketAddress());
+        instance.setVehicleService(localhost);
         assertEquals("SocketAddress was not set correctly", 
-                service.getSocketAddress(), instance.getVehicleService());
+                localhost, instance.getVehicleService());
         
         instance.shutdown();
     }
@@ -141,7 +145,7 @@ public class UdpVehicleServerTest {
         final CountDownLatch latch = new CountDownLatch(1);
         
         // Register a new pose listener on this server
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         server.addPoseListener(new PoseListener() {
             @Override
@@ -180,7 +184,8 @@ public class UdpVehicleServerTest {
     @Test
     public void testSetGetPose() {
         System.out.println("set/getPose");
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         
         // Generate a random pose
         UtmPose pose = new UtmPose(
@@ -207,7 +212,7 @@ public class UdpVehicleServerTest {
         final CountDownLatch latch = new CountDownLatch(1);
         
         // Register a new pose listener on this server
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         server.addImageListener(new ImageListener() {
             @Override
@@ -247,7 +252,7 @@ public class UdpVehicleServerTest {
     @Test
     public void testCaptureImage() throws IOException {
         System.out.println("captureImage");
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         
         // Generate a random image size
         int width = rnd.nextInt(64) + 1;
@@ -279,7 +284,7 @@ public class UdpVehicleServerTest {
         final CountDownLatch latch = new CountDownLatch(1);
         
         // Register a new pose listener on this server
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         server.addCameraListener(new CameraListener() {
             @Override
@@ -365,7 +370,7 @@ public class UdpVehicleServerTest {
         final CountDownLatch latch = new CountDownLatch(1);
         
         // Register a new pose listener on this server
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         server.addSensorListener(0, new SensorListener() {
             @Override
@@ -434,7 +439,7 @@ public class UdpVehicleServerTest {
     @Test
     public void testGetNumSensors() {
         System.out.println("getNumSensors");
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         
         // Check that we got the right number of sensors
@@ -453,7 +458,7 @@ public class UdpVehicleServerTest {
         final CountDownLatch latch = new CountDownLatch(1);
         
         // Register a new pose listener on this server
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         server.addVelocityListener(new VelocityListener() {
             @Override
@@ -522,7 +527,7 @@ public class UdpVehicleServerTest {
         final CountDownLatch latch = new CountDownLatch(1);
         
         // Register a new pose listener on this server
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         server.addWaypointListener(new WaypointListener() {
             @Override
@@ -616,7 +621,7 @@ public class UdpVehicleServerTest {
     @Test
     public void testIsConnected() {
         System.out.println("isConnected");
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         
         // Since we are using a test server, it should always be connected
@@ -629,7 +634,7 @@ public class UdpVehicleServerTest {
     @Test
     public void testSetIsAutonomous() {
         System.out.println("set/isAutonomous");
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         
         // Set to autonomous and back
@@ -648,7 +653,7 @@ public class UdpVehicleServerTest {
     @Test
     public void testSetGetGains() {
         System.out.println("set/getGains");
-        UdpVehicleServer instance = new UdpVehicleServer(service.getSocketAddress());
+        UdpVehicleServer instance = new UdpVehicleServer(localhost);
         
         // Generate a random gain vector and channel
         int axis = rnd.nextInt(6);

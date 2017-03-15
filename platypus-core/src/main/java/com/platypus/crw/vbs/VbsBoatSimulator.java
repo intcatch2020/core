@@ -10,7 +10,7 @@ import com.platypus.crw.data.Utm;
 import com.platypus.crw.data.UtmPose;
 import com.platypus.crw.vbs.ImageServerLink.ImageEvent;
 import com.platypus.crw.vbs.ImageServerLink.ImageEventListener;
-import robotutils.Pose3D;
+import com.platypus.crw.data.Pose3D;
 
 /**
  * Implements a simulated vehicle in a VBS2 server.
