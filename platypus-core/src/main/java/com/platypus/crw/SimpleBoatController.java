@@ -3,7 +3,7 @@ package com.platypus.crw;
 import com.platypus.crw.data.Twist;
 import com.platypus.crw.data.UtmPose;
 import java.util.Arrays;
-import robotutils.Pose3D;
+import com.platypus.crw.data.Pose3D;
 
 /**
  * A library of available navigation controllers that are accessible through the

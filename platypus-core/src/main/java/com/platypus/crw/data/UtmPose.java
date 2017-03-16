@@ -1,7 +1,6 @@
 package com.platypus.crw.data;
 
 import java.io.Serializable;
-import robotutils.Pose3D;
 
 /**
  * Represents a location in 6D pose and UTM origin.
