@@ -4,7 +4,7 @@
 
   <groupId>com.platypus.crw</groupId>
   <artifactId>platypus-core</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>platypus-core</name>
@@ -53,6 +53,7 @@
   </scm>
 
   <properties>
+    <!-- github server corresponds to entry in ~/.m2/settings.xml -->
     <github.global.server>github</github.global.server>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.build.resourceEncoding>UTF-8</project.build.resourceEncoding>
@@ -61,13 +62,10 @@
 
   <distributionManagement>
     <repository>
-      <id>github</id>
-      <url>file://${project.build.directory}/maven-repository/releases</url>
+      <id>internal.repo</id>
+      <name>Temporary Staging Repo</name>
+      <url>file://${project.build.directory}/mvn-repo</url>
     </repository>
-    <snapshotRepository>
-      <id>github-snapshots</id>
-      <url>file://${project.build.directory}/maven-repository/snapshots</url>
-    </snapshotRepository>
   </distributionManagement>
 
   <build>
@@ -98,33 +96,36 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
+    <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>2.7</version>
-      </plugin>
-      <plugin>
-        <groupId>com.github.github</groupId>
-        <artifactId>site-maven-plugin</artifactId>
-        <version>0.8</version>
+        <version>2.8.1</version>
         <configuration>
-          <message>Maven artifacts for ${project.version}</message>
-          <noJekyll>true</noJekyll>
-          <merge>true</merge>
-          <outputDirectory>${project.build.directory}/maven-repository</outputDirectory> 
-          <branch>refs/heads/master</branch>
-          <includes><include>**/*</include></includes>
-          <repositoryName>maven-repository</repositoryName>
-          <repositoryOwner>PlatypusLLC</repositoryOwner>
+            <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>site</goal>
-            </goals>
-            <phase>deploy</phase>
-          </execution>
-        </executions>
-      </plugin>
+    </plugin>
+    <plugin>
+            <groupId>com.github.github</groupId>
+            <artifactId>site-maven-plugin</artifactId>
+            <version>0.12</version>
+            <configuration>
+                <message>Maven artifacts for ${project.version}</message>  <!-- git commit message -->
+                <noJekyll>true</noJekyll>                                  <!-- disable webpage processing -->
+                <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
+                <branch>refs/heads/mvn-repo</branch>                       <!-- remote branch name -->
+                <includes><include>**/*</include></includes>
+                <repositoryName>core</repositoryName>      <!-- github repo name -->
+                <repositoryOwner>PlatypusLLC</repositoryOwner>    <!-- github username  -->
+            </configuration>
+            <executions>
+              <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
+              <execution>
+                <goals>
+                  <goal>site</goal>
+                </goals>
+                <phase>deploy</phase>
+              </execution>
+            </executions>
+        </plugin>
     </plugins>
   </build>
 
@@ -145,12 +146,12 @@
   
   <repositories>
     <repository>
-        <id>psigen-snapshots</id>
-        <url>https://raw.github.com/PlatypusLLC/maven-repository/master/snapshots</url>
-    </repository>
-    <repository>
-        <id>psigen-releases</id>
-        <url>https://raw.github.com/PlatypusLLC/maven-repository/master/releases</url>
+        <id>core-mvn-repo</id>
+        <url>https://raw.github.com/PlatypusLLC/core/mvn-repo</url>
+        <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+        </snapshots>
     </repository>
   </repositories>
 </project>
