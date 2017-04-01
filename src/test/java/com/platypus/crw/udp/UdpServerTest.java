@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
  * @author Prasanna Velagapudi <psigen@gmail.com>
  */
 public class UdpServerTest {
-    
+
     public UdpServerTest() {
     }
 
@@ -38,11 +38,11 @@ public class UdpServerTest {
     @AfterClass
     public static void tearDownClass() throws Exception {
     }
-    
+
     @Before
     public void setUp() {
     }
-    
+
     @After
     public void tearDown() {
     }
@@ -52,29 +52,27 @@ public class UdpServerTest {
      */
     @Test
     public void testRequestResponse() throws IOException {
-        System.out.println("Request/Response/QueuedResponse");
-        
         Random rnd = new Random();
         Long ticket = rnd.nextLong();
         String command = UUID.randomUUID().toString();
         int payload1 = rnd.nextInt();
         double payload2 = rnd.nextDouble();
         SocketAddress dest = new InetSocketAddress("127.0.0.1", 60003);
-        
+
         Response resp = new Response(ticket, dest);
         assertEquals((long)ticket, resp.ticket);
         assertEquals(dest, resp.destination);
         resp.stream.writeUTF(command);
         resp.stream.writeInt(payload1);
         resp.stream.writeDouble(payload2);
-        
+
         QueuedResponse qr = new QueuedResponse(resp, UdpConstants.INITIAL_RETRY_RATE_NS);
         assertEquals((long)ticket, qr.ticket);
         assertEquals(dest, qr.destination);
-        
+
         DatagramPacket packet = qr.toPacket();
         assertEquals(dest, packet.getSocketAddress());
-        
+
         Request req = new Request(packet);
         assertEquals(dest, req.source);
         assertEquals((long)ticket, req.ticket);
@@ -82,13 +80,12 @@ public class UdpServerTest {
         assertEquals(payload1, req.stream.readInt());
         assertEquals(payload2, req.stream.readDouble(), 1e-7);
     }
-    
+
     /**
      * Test of start method, of class UdpServer.
      */
     @Test
     public void testStart() {
-        System.out.println("start");
         UdpServer instance = new UdpServer();
         instance.start();
         // TODO review the generated test code and remove the default call to fail.
@@ -100,7 +97,6 @@ public class UdpServerTest {
      */
     @Test
     public void testStop() {
-        System.out.println("stop");
         UdpServer instance = new UdpServer();
         instance.stop();
         // TODO review the generated test code and remove the default call to fail.
@@ -112,7 +108,6 @@ public class UdpServerTest {
      */
     @Test
     public void testGetSocketAddress() {
-        System.out.println("getSocketAddress");
         UdpServer instance = new UdpServer();
         SocketAddress expResult = null;
         SocketAddress result = instance.getSocketAddress();
@@ -126,7 +121,6 @@ public class UdpServerTest {
      */
     @Test
     public void testSetHandler() {
-        System.out.println("setHandler");
         RequestHandler handler = null;
         UdpServer instance = new UdpServer();
         instance.setHandler(handler);
@@ -139,7 +133,6 @@ public class UdpServerTest {
      */
     @Test
     public void testRespond() {
-        System.out.println("respond");
         Response response = null;
         UdpServer instance = new UdpServer();
         instance.respond(response);
@@ -152,7 +145,6 @@ public class UdpServerTest {
      */
     @Test
     public void testBcast() {
-        System.out.println("bcast");
         Response response = null;
         List<SocketAddress> destinations = null;
         UdpServer instance = new UdpServer();
@@ -166,7 +158,6 @@ public class UdpServerTest {
      */
     @Test
     public void testSend() {
-        System.out.println("send");
         Response response = null;
         UdpServer instance = new UdpServer();
         instance.send(response);
@@ -179,7 +170,6 @@ public class UdpServerTest {
      */
     @Test
     public void testAcknowledge() {
-        System.out.println("acknowledge");
         long ticket = 0L;
         UdpServer instance = new UdpServer();
         instance.acknowledge(ticket);

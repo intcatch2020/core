@@ -6,6 +6,6 @@
 *.ear
 
 # Maven build files # 
-/*/target/
-/*/pom.xml.releaseBackup
-/*/release.properties
+/**/target/
+/**/pom.xml.releaseBackup
+/**/release.properties
