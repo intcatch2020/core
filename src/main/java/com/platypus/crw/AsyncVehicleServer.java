@@ -27,9 +27,9 @@ public interface AsyncVehicleServer {
 	
 	public void addImageListener(ImageListener l, FunctionObserver<Void> obs);
 	public void removeImageListener(ImageListener l, FunctionObserver<Void> obs);
-        public void captureImage(int width, int height, FunctionObserver<byte[]> obs);
+    public void captureImage(int width, int height, FunctionObserver<byte[]> obs);
         
-        public void addCameraListener(CameraListener l, FunctionObserver<Void> obs);
+    public void addCameraListener(CameraListener l, FunctionObserver<Void> obs);
 	public void removeCameraListener(CameraListener l, FunctionObserver<Void> obs);
 	public void startCamera(int numFrames, double interval, int width, int height, FunctionObserver<Void> obs);
 	public void stopCamera(FunctionObserver<Void> obs);
@@ -46,15 +46,16 @@ public interface AsyncVehicleServer {
 	public void setVelocity(Twist velocity, FunctionObserver<Void> obs);
 	public void getVelocity(FunctionObserver<Twist> obs);
 	
-        public void addWaypointListener(WaypointListener l, FunctionObserver<Void> obs);
+    public void addWaypointListener(WaypointListener l, FunctionObserver<Void> obs);
 	public void removeWaypointListener(WaypointListener l, FunctionObserver<Void> obs);
 	public void startWaypoints(UtmPose[] waypoint, String controller, FunctionObserver<Void> obs);
 	public void stopWaypoints(FunctionObserver<Void> obs);
 	public void getWaypoints(FunctionObserver<UtmPose[]> obs);
 	public void getWaypointStatus(FunctionObserver<WaypointState> obs);
+    public void getWaypointsIndex(FunctionObserver<Integer> obs);
 	
-        public void isConnected(FunctionObserver<Boolean> obs);
-        public void isAutonomous(FunctionObserver<Boolean> obs);
+    public void isConnected(FunctionObserver<Boolean> obs);
+    public void isAutonomous(FunctionObserver<Boolean> obs);
 	public void setAutonomous(boolean auto, FunctionObserver<Void> obs);
         
 	public void setGains(int axis, double[] gains, FunctionObserver<Void> obs);
@@ -381,6 +382,18 @@ public interface AsyncVehicleServer {
                     }
 
                     @Override
+                    public void getWaypointsIndex(final FunctionObserver<Integer> obs) {
+                        if (obs == null) return;
+
+                        executor.submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                obs.completed(server.getWaypointsIndex());
+                            }
+                        });
+                    }
+
+                    @Override
                     public void isConnected(final FunctionObserver<Boolean> obs) {
                         if (obs == null) return;
                         
@@ -661,6 +674,13 @@ public interface AsyncVehicleServer {
                     public WaypointState getWaypointStatus() {
                         final Delayer<WaypointState> delayer = new Delayer<WaypointState>();
                         server.getWaypointStatus(delayer);
+                        return delayer.awaitResult();
+                    }
+
+                    @Override
+                    public int getWaypointsIndex() {
+                        final Delayer<Integer> delayer = new Delayer<Integer>();
+                        server.getWaypointsIndex(delayer);
                         return delayer.awaitResult();
                     }
 

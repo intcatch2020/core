@@ -330,6 +330,9 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_GET_WAYPOINT_STATUS:
                     obs.completed(WaypointState.values()[req.stream.readByte()]);
                     return;
+                case CMD_GET_WAYPOINTS_INDEX:
+                    obs.completed(req.stream.readInt());
+                    return;
                 case CMD_IS_CONNECTED:
                     obs.completed(req.stream.readBoolean());
                     return;
@@ -854,6 +857,27 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_WAYPOINT_STATUS.str);
+            _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            obs.failed(FunctionObserver.FunctionError.ERROR);
+        }
+    }
+
+    public void getWaypointsIndex(FunctionObserver<Integer> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
+        if (_vehicleServer == null) {
+            obs.failed(FunctionObserver.FunctionError.ERROR);
+            return;
+        }
+
+        long ticket = _ticketCounter.incrementAndGet();
+
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_WAYPOINTS_INDEX.str);
             _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {

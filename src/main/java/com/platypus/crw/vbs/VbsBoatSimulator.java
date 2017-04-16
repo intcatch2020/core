@@ -127,6 +127,11 @@ public class VbsBoatSimulator extends AbstractVehicleServer {
     }
 
     @Override
+    public int getWaypointsIndex() {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
     public UtmPose[] getWaypoints() {
         throw new UnsupportedOperationException("Not implemented yet");
     }

@@ -53,6 +53,7 @@ public interface VehicleServer {
 	public void stopWaypoints();
 	public UtmPose[] getWaypoints();
 	public WaypointState getWaypointStatus();
+	public int getWaypointsIndex();
 
 	public boolean isConnected();
 	public boolean isAutonomous();

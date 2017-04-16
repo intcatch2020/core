@@ -285,6 +285,11 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp);
                     break;
+                case CMD_GET_WAYPOINTS_INDEX:
+                    resp.stream.writeInt(_vehicleServer.getWaypointsIndex());
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp);
+                    break;                    
                 case CMD_IS_CONNECTED:
                     resp.stream.writeBoolean((_vehicleServer != null) && _vehicleServer.isConnected());
                     if (resp.ticket != UdpConstants.NO_TICKET)

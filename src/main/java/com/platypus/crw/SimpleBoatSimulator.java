@@ -223,6 +223,11 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     }
 
     @Override
+    public int getWaypointsIndex() {
+        return 0;
+    }
+
+    @Override
     public void startCamera(final int numFrames, final double interval, final int width, final int height) {
         logger.log(Level.INFO, "Starting capture: {0} ({1}x{2}) frames @ {3}s ", new Object[]{numFrames, width, height, interval});
         

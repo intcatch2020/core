@@ -71,6 +71,7 @@ public class UdpConstants {
         CMD_STOP_WAYPOINTS("SPW"),
         CMD_GET_WAYPOINTS("GW"),
         CMD_GET_WAYPOINT_STATUS("GWS"),
+        CMD_GET_WAYPOINTS_INDEX("GWI"),
         CMD_IS_CONNECTED("IC"),
         CMD_IS_AUTONOMOUS("IA"),
         CMD_SET_AUTONOMOUS("SA"),
