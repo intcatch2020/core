@@ -336,6 +336,23 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(r);
                     break;
+                case CMD_SET_HOME:
+                    UtmPose home = UdpConstants.readPose(req.stream);
+                    _vehicleServer.setHome(home);
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp); // Send void response                    
+                    break;
+                case CMD_GET_HOME:
+                    UtmPose gHome = _vehicleServer.getHome();
+                    UdpConstants.writePose(resp.stream, gHome);
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp);                    
+                    break;
+                case CMD_START_GO_HOME:
+                    _vehicleServer.startGoHome();
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp); // Send void response
+                    break;
                 default:
                     String warning = "Ignoring unknown command: " + command;
                     logger.log(Level.WARNING, warning);

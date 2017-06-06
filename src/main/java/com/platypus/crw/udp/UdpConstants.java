@@ -76,7 +76,10 @@ public class UdpConstants {
         CMD_IS_AUTONOMOUS("IA"),
         CMD_SET_AUTONOMOUS("SA"),
         CMD_SET_GAINS("SG"),
-        CMD_GET_GAINS("GG");
+        CMD_GET_GAINS("GG"),
+        CMD_SET_HOME("SH"),
+        CMD_GET_HOME("GH"),
+        CMD_START_GO_HOME("SGH");
 
         COMMAND(String s) {
             str = s;
