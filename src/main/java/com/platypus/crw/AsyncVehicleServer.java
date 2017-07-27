@@ -53,6 +53,9 @@ public interface AsyncVehicleServer {
 	public void getWaypoints(FunctionObserver<UtmPose[]> obs);
 	public void getWaypointStatus(FunctionObserver<WaypointState> obs);
     public void getWaypointsIndex(FunctionObserver<Integer> obs);
+
+    public void addCrumbListener(CrumbListener l, FunctionObserver<Void> obs);
+    public void removeCrumbListener(CrumbListener l, FunctionObserver<Void> obs);
 	
     public void isConnected(FunctionObserver<Boolean> obs);
     public void isAutonomous(FunctionObserver<Boolean> obs);
@@ -61,9 +64,9 @@ public interface AsyncVehicleServer {
 	public void setGains(int axis, double[] gains, FunctionObserver<Void> obs);
 	public void getGains(int axis, FunctionObserver<double[]> obs);
         
-        public void setHome(UtmPose home, FunctionObserver<Void> obs);
-        public void getHome(FunctionObserver<UtmPose> obs);
-        public void startGoHome(FunctionObserver<Void> obs);
+    public void setHome(UtmPose home, FunctionObserver<Void> obs);
+    public void getHome(FunctionObserver<UtmPose> obs);
+    public void startGoHome(FunctionObserver<Void> obs);
 
         /**
          * Utility class for handling AsyncVehicleServer objects.
@@ -97,6 +100,28 @@ public interface AsyncVehicleServer {
                             @Override
                             public void run() {
                                 server.removePoseListener(l);
+                                if (obs != null) obs.completed(null);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void addCrumbListener(final CrumbListener l, final FunctionObserver<Void> obs) {
+                        executor.submit(new Runnable () {
+                            @Override
+                            public void run() {
+                                server.addCrumbListener(l);
+                                if (obs != null) obs.completed(null);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void removeCrumbListener(final CrumbListener l, final FunctionObserver<Void> obs) {
+                        executor.submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                server.removeCrumbListener(l);
                                 if (obs != null) obs.completed(null);
                             }
                         });
@@ -537,6 +562,20 @@ public interface AsyncVehicleServer {
                     public void removePoseListener(PoseListener l) {
                         final Delayer<Void> delayer = new Delayer<Void>();
                         server.removePoseListener(l, delayer);
+                        delayer.awaitResult();
+                    }
+
+                    @Override
+                    public void addCrumbListener(CrumbListener l) {
+                        final Delayer<Void> delayer = new Delayer<Void>();
+                        server.addCrumbListener(l, delayer);
+                        delayer.awaitResult();
+                    }
+
+                    @Override
+                    public void removeCrumbListener(CrumbListener l) {
+                        final Delayer<Void> delayer = new Delayer<Void>();
+                        server.removeCrumbListener(l, delayer);
                         delayer.awaitResult();
                     }
 

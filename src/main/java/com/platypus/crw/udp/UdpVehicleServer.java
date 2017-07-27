@@ -6,6 +6,7 @@ import com.platypus.crw.FunctionObserver;
 import com.platypus.crw.ImageListener;
 import com.platypus.crw.PoseListener;
 import com.platypus.crw.SensorListener;
+import com.platypus.crw.CrumbListener;
 import com.platypus.crw.VehicleServer.CameraState;
 import com.platypus.crw.VehicleServer.SensorType;
 import com.platypus.crw.VehicleServer.WaypointState;
@@ -71,6 +72,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     protected final List<PoseListener> _poseListeners = new ArrayList<PoseListener>();
     protected final List<CameraListener> _cameraListeners = new ArrayList<CameraListener>();
     protected final List<WaypointListener> _waypointListeners = new ArrayList<WaypointListener>();
+    protected final List<CrumbListener> _crumbListeners = new ArrayList<CrumbListener>();
 
     public UdpVehicleServer() {
         // Create a UDP server that will handle RPC
@@ -206,6 +208,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             registerListener(_poseListeners, UdpConstants.COMMAND.CMD_REGISTER_POSE_LISTENER);
             registerListener(_cameraListeners, UdpConstants.COMMAND.CMD_REGISTER_CAMERA_LISTENER);
             registerListener(_waypointListeners, UdpConstants.COMMAND.CMD_REGISTER_WAYPOINT_LISTENER);
+            registerListener(_crumbListeners, UdpConstants.COMMAND.CMD_REGISTER_CRUMB_LISTENER);
 
             // Special case to handle sensor listener channels
             synchronized (_sensorListeners) {
@@ -261,6 +264,13 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                         }
                     }
                     return;
+                case CMD_SEND_CRUMB:
+                    UtmPose crumb = UdpConstants.readPose(req.stream);
+                    synchronized (_crumbListeners) {
+                        for (CrumbListener l : _crumbListeners) {
+                            l.receivedCrumb(crumb);
+                        }
+                    }
                 case CMD_SEND_SENSOR:
                     SensorData data = UdpConstants.readSensorData(req.stream);
                     synchronized (_sensorListeners) {
@@ -401,6 +411,24 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     public void removePoseListener(PoseListener l, FunctionObserver<Void> obs) {
         synchronized (_poseListeners) {
             _poseListeners.remove(l);
+        }
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+
+    public void addCrumbListener(CrumbListener l, FunctionObserver<Void> obs) {
+        synchronized (_crumbListeners) {
+            _crumbListeners.add(l);
+        }
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+
+    public void removeCrumbListener(CrumbListener l, FunctionObserver<Void> obs) {
+        synchronized (_crumbListeners) {
+            _crumbListeners.remove(l);
         }
         if (obs != null) {
             obs.completed(null);

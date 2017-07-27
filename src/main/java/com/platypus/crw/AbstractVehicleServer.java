@@ -22,6 +22,7 @@ public abstract class AbstractVehicleServer implements VehicleServer {
     protected final List<PoseListener> _stateListeners = new ArrayList<PoseListener>();
     protected final List<CameraListener> _cameraListeners = new ArrayList<CameraListener>();
     protected final List<WaypointListener> _waypointListeners = new ArrayList<WaypointListener>();
+    protected final List<CrumbListener> _crumbListeners = new ArrayList<CrumbListener>();
 
     @Override
     public double[] getGains(int axis) {
@@ -59,12 +60,34 @@ public abstract class AbstractVehicleServer implements VehicleServer {
         }
     }
 
+    @Override
+    public void addCrumbListener(CrumbListener l) {
+        synchronized (_crumbListeners) {
+            _crumbListeners.add(l);
+        }
+    }
+
+    @Override
+    public void removeCrumbListener(CrumbListener l) {
+        synchronized (_crumbListeners) {
+            _crumbListeners.remove(l);
+        }
+    }
+
     protected void sendState(UtmPose pose) {
         // Process the listeners last to first, notifying
         // those that are interested in this event
         synchronized (_stateListeners) {
             for (PoseListener l : _stateListeners) {
                 l.receivedPose(pose);
+            }
+        }
+    }
+
+    protected void sendCrumb(UtmPose crumb) {
+        synchronized (_crumbListeners) {
+            for (CrumbListener l : _crumbListeners) {
+                l.receivedCrumb(crumb);
             }
         }
     }

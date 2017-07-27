@@ -55,6 +55,9 @@ public interface VehicleServer {
 	public WaypointState getWaypointStatus();
 	public int getWaypointsIndex();
 
+	public void addCrumbListener(CrumbListener l);
+	public void removeCrumbListener(CrumbListener l);
+
 	public boolean isConnected();
 	public boolean isAutonomous();
 	public void setAutonomous(boolean auto);

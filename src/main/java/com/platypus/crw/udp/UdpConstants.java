@@ -79,7 +79,9 @@ public class UdpConstants {
         CMD_GET_GAINS("GG"),
         CMD_SET_HOME("SH"),
         CMD_GET_HOME("GH"),
-        CMD_START_GO_HOME("SGH");
+        CMD_START_GO_HOME("SGH"),
+        CMD_REGISTER_CRUMB_LISTENER("RCL"),
+        CMD_SEND_CRUMB("_B");
 
         COMMAND(String s) {
             str = s;
