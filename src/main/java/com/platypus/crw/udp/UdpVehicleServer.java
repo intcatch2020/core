@@ -266,9 +266,11 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     return;
                 case CMD_SEND_CRUMB:
                     UtmPose crumb = UdpConstants.readPose(req.stream);
+                    long index = req.stream.readLong();
+                    
                     synchronized (_crumbListeners) {
                         for (CrumbListener l : _crumbListeners) {
-                            l.receivedCrumb(crumb);
+                            l.receivedCrumb(crumb, index);
                         }
                     }
                 case CMD_SEND_SENSOR:

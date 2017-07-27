@@ -413,7 +413,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             }
         }
 
-        public void receivedCrumb(UtmPose crumb) {
+        public void receivedCrumb(UtmPose crumb, long index) {
             synchronized (_crumbListeners) {
                 if (_crumbListeners.isEmpty()) return;
             }
@@ -423,6 +423,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                 Response resp = new Response(UdpConstants.NO_TICKET, DUMMY_ADDRESS);
                 resp.stream.writeUTF(UdpConstants.COMMAND.CMD_SEND_CRUMB.str);
                 UdpConstants.writePose(resp.stream, crumb);
+                resp.stream.writeLong(index);
 
                 // Send to all listeners
                 synchronized (_crumbListeners) {
