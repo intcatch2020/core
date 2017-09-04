@@ -48,7 +48,8 @@ public interface AsyncVehicleServer {
 
   public void addWaypointListener(WaypointListener l, FunctionObserver<Void> obs);
   public void removeWaypointListener(WaypointListener l, FunctionObserver<Void> obs);
-  public void startWaypoints(UtmPose[] waypoint, String controller, FunctionObserver<Void> obs);
+  //public void startWaypoints(UtmPose[] waypoint, String controller, FunctionObserver<Void> obs);
+  public void startWaypoints(double[][] waypoints, FunctionObserver<Void> obs);
   public void stopWaypoints(FunctionObserver<Void> obs);
   public void getWaypoints(FunctionObserver<UtmPose[]> obs);
   public void getWaypointStatus(FunctionObserver<WaypointState> obs);
@@ -335,6 +336,7 @@ public interface AsyncVehicleServer {
           });
         }
 
+        /*
         @Override
         public void startWaypoints(final UtmPose[] waypoint, final String controller, final FunctionObserver<Void> obs) {
           executor.submit(new Runnable() {
@@ -344,6 +346,17 @@ public interface AsyncVehicleServer {
               if (obs != null) obs.completed(null);
             }
           });
+        }
+        */
+        @Override
+        public void startWaypoints(final double[][] waypoints, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.startWaypoints(waypoints);
+                    if (obs != null) obs.completed(null);
+                }
+            });
         }
 
         @Override
@@ -649,11 +662,19 @@ public interface AsyncVehicleServer {
           delayer.awaitResult();
         }
 
+        /*
         @Override
         public void startWaypoints(UtmPose[] waypoint, String controller) {
           final Delayer<Void> delayer = new Delayer<Void>();
           server.startWaypoints(waypoint, controller, delayer);
           delayer.awaitResult();
+        }
+        */
+        @Override
+        public void startWaypoints(double[][] waypoints) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.startWaypoints(waypoints, delayer);
+            delayer.awaitResult();
         }
 
         @Override

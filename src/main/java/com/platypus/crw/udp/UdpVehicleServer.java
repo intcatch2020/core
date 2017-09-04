@@ -771,6 +771,33 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
+    public void startWaypoints(double[][] waypoints, FunctionObserver<Void> obs) {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }
+        
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_START_WAYPOINTS.str);
+            response.stream.writeInt(waypoints.length);
+            for (double[] waypoint : waypoints) {
+                UdpConstants.writeLatLng(response.stream, waypoint);
+            }
+            if (obs != null) _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);            
+        } catch (IOException e) {
+            // TODO: Should I also flag something somewhere?
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+        }
+    }
+    /*
     public void startWaypoints(UtmPose[] waypoints, String controller, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -798,6 +825,8 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             }
         }
     }
+    */
+    
 
     public void stopWaypoints(FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
