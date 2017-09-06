@@ -333,9 +333,9 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     obs.completed(UdpConstants.readTwist(req.stream));
                     return;
                 case CMD_GET_WAYPOINTS:
-                    UtmPose[] poses = new UtmPose[req.stream.readInt()];
-                    for (int i = 0; i < poses.length; ++i) {
-                        poses[i] = UdpConstants.readPose(req.stream);
+                    double[][] poses = new double[req.stream.readInt()][2];
+                    for (int i = 0; i < poses.length; i++) {
+                        poses[i] = UdpConstants.readLatLng(req.stream);
                     }
                     obs.completed(poses);
                     return;
@@ -806,7 +806,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    public void startWaypoints(UtmPose[] waypoints, String controller, FunctionObserver<Void> obs) {
+    public void startWaypoints(double[][] waypoints, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
                 obs.failed(FunctionObserver.FunctionError.ERROR);
@@ -815,17 +815,16 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
         
         long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
-        
+
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_START_WAYPOINTS.str);
             response.stream.writeInt(waypoints.length);
-            for (int i = 0; i < waypoints.length; ++i) {
-                UdpConstants.writePose(response.stream, waypoints[i]);
+            for (double[] waypoint : waypoints) {
+                UdpConstants.writeLatLng(response.stream, waypoint);
             }
-            response.stream.writeUTF((controller == null) ? "": controller);
             if (obs != null) _ticketMap.put(ticket, obs);
-            _udpServer.respond(response);
+            _udpServer.respond(response);            
         } catch (IOException e) {
             // TODO: Should I also flag something somewhere?
             if (obs != null) {
@@ -857,7 +856,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    public void getWaypoints(FunctionObserver<UtmPose[]> obs) {
+    public void getWaypoints(FunctionObserver<double[][]> obs) {
         // This is a pure getter function, just do nothing if there is no one listening.
         if (obs == null) return;
 
@@ -875,7 +874,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             _udpServer.respond(response);
         } catch (IOException e) {
             obs.failed(FunctionObserver.FunctionError.ERROR);
-        }
+        }        
     }
 
     public void getWaypointStatus(FunctionObserver<WaypointState> obs) {

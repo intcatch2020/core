@@ -40,7 +40,7 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     public final SensorType[] _sensorTypes = new SensorType[3];
     public UtmPose _utmPose = new UtmPose(new Pose3D(476608.34, 4671214.40, 172.35, 0, 0, 0), new Utm(17, true));
     public Twist _velocity = new Twist();
-    public UtmPose[] _waypoints = new UtmPose[0];
+    public double[][] _waypoints = new double[0][0];
     public UtmPose _home = new UtmPose(new Pose3D(476608.34, 4671214.40, 172.35, 0, 0, 0), new Utm(17, true));
     
     protected final Object _captureLock = new Object();
@@ -125,8 +125,16 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
         return _sensorTypes[channel];
     }
 
+    /*
     @Override
     public UtmPose[] getWaypoints() {
+        synchronized (_navigationLock) {
+            return _waypoints;
+        }
+    }
+    */
+    @Override
+    public double[][] getWaypoints() {
         synchronized (_navigationLock) {
             return _waypoints;
         }
@@ -143,7 +151,8 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     }
 
     @Override
-    public void startWaypoints(final UtmPose[] waypoints, final String controller) {
+    //public void startWaypoints(final UtmPose[] waypoints, final String controller) {
+    public void startWaypoints(final double[][] waypoints) {
         logger.log(Level.INFO, "Starting waypoints: {0}", Arrays.toString(waypoints));
         
         // Create a waypoint navigation task
@@ -152,13 +161,6 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
 
             // Retrieve the appropriate controller in initializer
             VehicleController vc = SimpleBoatController.POINT_AND_SHOOT.controller;
-            {
-                try {
-                    vc = SimpleBoatController.valueOf(controller).controller;
-                } catch (IllegalArgumentException e) {
-                    logger.log(Level.WARNING, "Unknown controller specified (using {0} instead): {1}", new Object[]{vc, controller});
-                }
-            }
 
             @Override
             public void run() {
@@ -205,7 +207,7 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
             if (_navigationTask != null) {
                 _navigationTask.cancel();
                 _navigationTask = null;
-                _waypoints = new UtmPose[0];
+                _waypoints = new double[0][0];
                 setVelocity(new Twist());
             }
         }

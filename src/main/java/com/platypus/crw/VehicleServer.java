@@ -49,9 +49,9 @@ public interface VehicleServer {
 
 	public void addWaypointListener(WaypointListener l);
 	public void removeWaypointListener(WaypointListener l);
-	public void startWaypoints(UtmPose[] waypoint, String controller);
+        public void startWaypoints(double[][] waypoints);
 	public void stopWaypoints();
-	public UtmPose[] getWaypoints();
+        public double[][] getWaypoints();
 	public WaypointState getWaypointStatus();
 	public int getWaypointsIndex();
 

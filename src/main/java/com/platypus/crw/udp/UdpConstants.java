@@ -124,6 +124,18 @@ public class UdpConstants {
         return new Twist(x,y,z,rx,ry,rz);
     }
     
+    public static void writeLatLng(DataOutputStream out, double[] latLng) throws IOException {
+        out.writeDouble(latLng[0]);
+        out.writeDouble(latLng[1]);
+    }
+    
+    public static double[] readLatLng(DataInputStream in) throws IOException {
+        double lat = in.readDouble();
+        double lng = in.readDouble();
+        double[] result = {lat, lng};
+        return result; 
+    }
+    
     public static void writePose(DataOutputStream out, UtmPose utmPose) throws IOException {
         out.writeDouble(utmPose.pose.getX());
         out.writeDouble(utmPose.pose.getY());

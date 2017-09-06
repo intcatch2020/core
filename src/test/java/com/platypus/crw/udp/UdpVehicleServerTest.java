@@ -509,7 +509,8 @@ public class UdpVehicleServerTest {
                 latch.countDown();
             }
         });
-        server.startWaypoints(new UtmPose[]{new UtmPose()}, "STOP");
+        //server.startWaypoints(new UtmPose[]{new UtmPose()}, "STOP");
+        server.startWaypoints(new double[][]{{0, 0}});
 
         // If we haven't received a pose in a full second, something is wrong
         try {

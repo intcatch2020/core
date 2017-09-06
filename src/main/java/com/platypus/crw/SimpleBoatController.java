@@ -29,12 +29,16 @@ public enum SimpleBoatController {
             Pose3D pose = state.pose;
 
             // Get the current waypoint, or return if there are none
-            UtmPose[] waypoints = server.getWaypoints();
+            //UtmPose[] waypoints = server.getWaypoints();
+            double[][] waypoints = server.getWaypoints();
             if (waypoints == null || waypoints.length <= 0) {
                 server.setVelocity(twist);
                 return;
             }
-            Pose3D waypoint = waypoints[0].pose;
+            // Pose3D waypoint = waypoints[0].pose;
+            double[] latlng = waypoints[0];
+            UtmPose utmpose = new UtmPose(latlng);
+            Pose3D waypoint = utmpose.pose;
 
             // TODO: handle different UTM zones!
 
@@ -47,8 +51,7 @@ public enum SimpleBoatController {
             if (distanceSq <= 9.0) {
                 
                 // If we are "at" the destination, de-queue a waypoint
-                server.startWaypoints(Arrays.copyOfRange(waypoints, 1, waypoints.length), 
-                        SimpleBoatController.POINT_AND_SHOOT.toString());
+                server.startWaypoints(Arrays.copyOfRange(waypoints, 1, waypoints.length));
                 
             } else if (Math.abs(angle) > 1.0) {
 
@@ -105,12 +108,17 @@ public enum SimpleBoatController {
             UtmPose state = server.getPose();
             Pose3D pose = state.pose;
 
-            UtmPose[] waypoints = server.getWaypoints();
+            // Get the current waypoint, or return if there are none
+            //UtmPose[] waypoints = server.getWaypoints();
+            double[][] waypoints = server.getWaypoints();
             if (waypoints == null || waypoints.length <= 0) {
                 server.setVelocity(twist);
                 return;
             }
-            Pose3D waypoint = waypoints[0].pose;
+            // Pose3D waypoint = waypoints[0].pose;
+            double[] latlng = waypoints[0];
+            UtmPose utmpose = new UtmPose(latlng);
+            Pose3D waypoint = utmpose.pose;
 
             // TODO: handle different UTM zones!
             // Compute the distance and angle to the waypoint
