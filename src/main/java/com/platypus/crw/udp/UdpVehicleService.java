@@ -259,16 +259,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     break;
                 case CMD_START_WAYPOINTS:
                 {
-                    /*
-                    UtmPose[] swPoses = new UtmPose[req.stream.readInt()];
-                    for (int i = 0; i < swPoses.length; ++i) {
-                        swPoses[i] = UdpConstants.readPose(req.stream);
-                    }
-                    _vehicleServer.startWaypoints(swPoses, req.stream.readUTF());
-                    if (resp.ticket != UdpConstants.NO_TICKET)
-                        _udpServer.respond(resp); // Send void response
-                    */
-                    double[][] poses = new double[req.stream.readInt()][];
+                    double[][] poses = new double[req.stream.readInt()][2];
                     for (int i = 0; i < poses.length; i++) {
                         poses[i] = UdpConstants.readLatLng(req.stream);
                     }
@@ -284,15 +275,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     break;
                 case CMD_GET_WAYPOINTS:
                 {
-                    /*
-                    UtmPose[] gwPoses = _vehicleServer.getWaypoints();
-                    resp.stream.writeInt(gwPoses.length);
-                    for (int i = 0; i < gwPoses.length; ++i) {
-                        UdpConstants.writePose(resp.stream, gwPoses[i]);
-                    }
-                    if (resp.ticket != UdpConstants.NO_TICKET)
-                        _udpServer.respond(resp);
-                    */
                     double[][] poses = _vehicleServer.getWaypoints();
                     resp.stream.writeInt(poses.length);
                     for (int i = 0; i < poses.length; i++) {
