@@ -1,6 +1,12 @@
 package com.platypus.crw.data;
 
 import java.io.Serializable;
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
+import org.jscience.geography.coordinates.LatLong;
+import org.jscience.geography.coordinates.UTM;
+import org.jscience.geography.coordinates.crs.ReferenceEllipsoid;
+
 
 /**
  * Represents a location in 6D pose and UTM origin.
@@ -24,6 +30,23 @@ public class UtmPose implements Serializable, Cloneable {
     public UtmPose(Pose3D pose, Utm origin) {
         this.pose = pose;
         this.origin = origin;
+    }
+    
+    public UtmPose(double lat, double lng) {        
+        UTM utm = UTM.latLongToUtm(LatLong.valueOf(lat, lng, NonSI.DEGREE_ANGLE), ReferenceEllipsoid.WGS84);
+        pose = new Pose3D(utm.eastingValue(SI.METER), utm.northingValue(SI.METER), 0.0, Quaternion.fromEulerAngles(0, 0, 0));
+        origin = new Utm(utm.longitudeZone(), utm.latitudeZone() > 'O');        
+    }
+    
+    public UtmPose(double[] latlng) {
+        this(latlng[0], latlng[1]);
+    }
+    
+    public double[] getLatLong() {
+        UTM utm = UTM.valueOf(origin.zone, origin.isNorth ? 'T' : 'L', pose.getX(), pose.getY(), SI.METER);
+        LatLong latlng = UTM.utmToLatLong(utm, ReferenceEllipsoid.WGS84);
+        double[] result = {latlng.latitudeValue(NonSI.DEGREE_ANGLE), latlng.longitudeValue(NonSI.DEGREE_ANGLE)};
+        return result;
     }
     
     @Override

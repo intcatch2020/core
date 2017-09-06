@@ -258,6 +258,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     }
                     break;
                 case CMD_START_WAYPOINTS:
+                {
                     /*
                     UtmPose[] swPoses = new UtmPose[req.stream.readInt()];
                     for (int i = 0; i < swPoses.length; ++i) {
@@ -275,12 +276,15 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp);
                     break;
+                }
                 case CMD_STOP_WAYPOINTS:
                     _vehicleServer.stopWaypoints();
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp); // Send void response
                     break;
                 case CMD_GET_WAYPOINTS:
+                {
+                    /*
                     UtmPose[] gwPoses = _vehicleServer.getWaypoints();
                     resp.stream.writeInt(gwPoses.length);
                     for (int i = 0; i < gwPoses.length; ++i) {
@@ -288,7 +292,16 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     }
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp);
+                    */
+                    double[][] poses = _vehicleServer.getWaypoints();
+                    resp.stream.writeInt(poses.length);
+                    for (int i = 0; i < poses.length; i++) {
+                        UdpConstants.writeLatLng(resp.stream, poses[i]);
+                    }                        
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp);                    
                     break;
+                }
                 case CMD_GET_WAYPOINT_STATUS:
                     resp.stream.writeByte(_vehicleServer.getWaypointStatus().ordinal());
                     if (resp.ticket != UdpConstants.NO_TICKET)

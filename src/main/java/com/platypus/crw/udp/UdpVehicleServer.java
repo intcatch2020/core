@@ -851,6 +851,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
+    /*
     public void getWaypoints(FunctionObserver<UtmPose[]> obs) {
         // This is a pure getter function, just do nothing if there is no one listening.
         if (obs == null) return;
@@ -870,6 +871,27 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         } catch (IOException e) {
             obs.failed(FunctionObserver.FunctionError.ERROR);
         }
+    }
+    */
+    public void getWaypoints(FunctionObserver<double[][]> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
+        if (_vehicleServer == null) {
+            obs.failed(FunctionObserver.FunctionError.ERROR);
+            return;
+        }
+        
+        long ticket = _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_WAYPOINTS.str);
+            _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            obs.failed(FunctionObserver.FunctionError.ERROR);
+        }        
     }
 
     public void getWaypointStatus(FunctionObserver<WaypointState> obs) {

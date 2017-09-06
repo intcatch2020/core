@@ -112,7 +112,8 @@ public class VbsBoatSimulator extends AbstractVehicleServer {
     }
 
     @Override
-    public void startWaypoints(final UtmPose[] waypoint, final String controller) {
+    //public void startWaypoints(final UtmPose[] waypoint, final String controller) {
+    public void startWaypoints(final double[][] waypoints) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
@@ -132,7 +133,8 @@ public class VbsBoatSimulator extends AbstractVehicleServer {
     }
 
     @Override
-    public UtmPose[] getWaypoints() {
+    //public UtmPose[] getWaypoints() {
+    public double[][] getWaypoints() {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 

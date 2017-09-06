@@ -51,7 +51,8 @@ public interface AsyncVehicleServer {
   //public void startWaypoints(UtmPose[] waypoint, String controller, FunctionObserver<Void> obs);
   public void startWaypoints(double[][] waypoints, FunctionObserver<Void> obs);
   public void stopWaypoints(FunctionObserver<Void> obs);
-  public void getWaypoints(FunctionObserver<UtmPose[]> obs);
+  //public void getWaypoints(FunctionObserver<UtmPose[]> obs);
+  public void getWaypoints(FunctionObserver<double[][]> obs);
   public void getWaypointStatus(FunctionObserver<WaypointState> obs);
   public void getWaypointsIndex(FunctionObserver<Integer> obs);
 
@@ -370,6 +371,7 @@ public interface AsyncVehicleServer {
           });
         }
 
+        /*
         @Override
         public void getWaypoints(final FunctionObserver<UtmPose[]> obs) {
           if (obs == null) return;
@@ -380,6 +382,18 @@ public interface AsyncVehicleServer {
               obs.completed(server.getWaypoints());
             }
           });
+        }
+        */
+        @Override
+        public void getWaypoints(final FunctionObserver<double[][]> obs) {
+          if (obs == null) return;
+
+          executor.submit(new Runnable() {
+            @Override
+            public void run() {
+              obs.completed(server.getWaypoints());
+            }
+          });            
         }
 
         @Override
@@ -684,9 +698,17 @@ public interface AsyncVehicleServer {
           delayer.awaitResult();
         }
 
+        /*
         @Override
         public UtmPose[] getWaypoints() {
           final Delayer<UtmPose[]> delayer = new Delayer<UtmPose[]>();
+          server.getWaypoints(delayer);
+          return delayer.awaitResult();
+        }
+        */
+        @Override
+        public double[][] getWaypoints() {
+          final Delayer<double[][]> delayer = new Delayer<double[][]>();
           server.getWaypoints(delayer);
           return delayer.awaitResult();
         }
