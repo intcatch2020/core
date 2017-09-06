@@ -265,7 +265,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     }
                     return;
                 case CMD_SEND_CRUMB:
-                    UtmPose crumb = UdpConstants.readPose(req.stream);
+                    double[] crumb = UdpConstants.readLatLng(req.stream);
                     long index = req.stream.readLong();
                     
                     synchronized (_crumbListeners) {
@@ -358,8 +358,8 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     }
                     obs.completed(gains);
                     return;
-                case CMD_GET_HOME:                    
-                    obs.completed(UdpConstants.readPose(req.stream));
+                case CMD_GET_HOME:
+                    obs.completed(UdpConstants.readLatLng(req.stream));
                     return;
                 case CMD_LIST:
                     Map<SocketAddress, String> clients = new HashMap<SocketAddress, String>();
@@ -1035,7 +1035,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    public void setHome(UtmPose home, FunctionObserver<Void> obs) {
+    public void setHome(double[] home, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
                 obs.failed(FunctionObserver.FunctionError.ERROR);
@@ -1048,7 +1048,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         try {
             Response response = new Response(ticket, _vehicleServer);
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_SET_HOME.str);
-            UdpConstants.writePose(response.stream, home);
+            UdpConstants.writeLatLng(response.stream, home);
             if (obs != null) _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {
@@ -1058,7 +1058,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }            
     }    
 
-    public void getHome(FunctionObserver<UtmPose> obs) {
+    public void getHome(FunctionObserver<double[]> obs) {
         // This is a pure getter function, just do nothing if there is no one listening.
         if (obs == null) return;
 

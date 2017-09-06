@@ -65,7 +65,7 @@ public interface VehicleServer {
 	public void setGains(int axis, double[] gains);
 	public double[] getGains(int axis);
 
-	public void setHome(UtmPose home);
-	public UtmPose getHome();
+	public void setHome(double[] home);
+	public double[] getHome();
 	public void startGoHome();
 }

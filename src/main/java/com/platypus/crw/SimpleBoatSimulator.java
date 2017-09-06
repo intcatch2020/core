@@ -41,7 +41,7 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     public UtmPose _utmPose = new UtmPose(new Pose3D(476608.34, 4671214.40, 172.35, 0, 0, 0), new Utm(17, true));
     public Twist _velocity = new Twist();
     public double[][] _waypoints = new double[0][0];
-    public UtmPose _home = new UtmPose(new Pose3D(476608.34, 4671214.40, 172.35, 0, 0, 0), new Utm(17, true));
+    public double[] _home = new double[0];
     
     protected final Object _captureLock = new Object();
     protected TimerTask _captureTask = null;
@@ -125,14 +125,6 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
         return _sensorTypes[channel];
     }
 
-    /*
-    @Override
-    public UtmPose[] getWaypoints() {
-        synchronized (_navigationLock) {
-            return _waypoints;
-        }
-    }
-    */
     @Override
     public double[][] getWaypoints() {
         synchronized (_navigationLock) {
@@ -330,13 +322,13 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     }
 
     @Override
-    public void setHome(UtmPose home)
+    public void setHome(double[] home)
     {
         _home = home.clone();
     }
 
     @Override
-    public UtmPose getHome()
+    public double[] getHome()
     {
         return _home.clone();
     }

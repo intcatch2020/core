@@ -84,7 +84,7 @@ public abstract class AbstractVehicleServer implements VehicleServer {
         }
     }
 
-    protected void sendCrumb(UtmPose crumb, long index) {
+    protected void sendCrumb(double[] crumb, long index) {
         synchronized (_crumbListeners) {
             for (CrumbListener l : _crumbListeners) {
                 l.receivedCrumb(crumb, index);

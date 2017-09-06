@@ -349,14 +349,14 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                         _udpServer.respond(r);
                     break;
                 case CMD_SET_HOME:
-                    UtmPose home = UdpConstants.readPose(req.stream);
+                    double[] home = UdpConstants.readLatLng(req.stream);
                     _vehicleServer.setHome(home);
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp); // Send void response                    
                     break;
                 case CMD_GET_HOME:
-                    UtmPose gHome = _vehicleServer.getHome();
-                    UdpConstants.writePose(resp.stream, gHome);
+                    double[] gHome = _vehicleServer.getHome();
+                    UdpConstants.writeLatLng(resp.stream, gHome);
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp);                    
                     break;
@@ -417,7 +417,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             }
         }
 
-        public void receivedCrumb(UtmPose crumb, long index) {
+        public void receivedCrumb(double[] crumb, long index) {
             synchronized (_crumbListeners) {
                 if (_crumbListeners.isEmpty()) return;
             }
@@ -426,7 +426,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                 // Construct message
                 Response resp = new Response(UdpConstants.NO_TICKET, DUMMY_ADDRESS);
                 resp.stream.writeUTF(UdpConstants.COMMAND.CMD_SEND_CRUMB.str);
-                UdpConstants.writePose(resp.stream, crumb);
+                UdpConstants.writeLatLng(resp.stream, crumb);
                 resp.stream.writeLong(index);
 
                 // Send to all listeners

@@ -63,8 +63,8 @@ public interface AsyncVehicleServer {
 
   public void addCrumbListener(CrumbListener l, FunctionObserver<Void> obs);
   public void removeCrumbListener(CrumbListener l, FunctionObserver<Void> obs);        
-  public void setHome(UtmPose home, FunctionObserver<Void> obs);
-  public void getHome(FunctionObserver<UtmPose> obs);
+  public void setHome(double[] home, FunctionObserver<Void> obs);
+  public void getHome(FunctionObserver<double[]> obs);
   public void startGoHome(FunctionObserver<Void> obs);  
 
   /**
@@ -480,7 +480,7 @@ public interface AsyncVehicleServer {
         }
 
         @Override
-        public void setHome(final UtmPose home, final FunctionObserver<Void> obs) {
+        public void setHome(final double[] home, final FunctionObserver<Void> obs) {
             executor.submit(new Runnable() {
                @Override
                public void run() {
@@ -491,7 +491,7 @@ public interface AsyncVehicleServer {
         }
         
         @Override
-        public void getHome(final FunctionObserver<UtmPose> obs) {
+        public void getHome(final FunctionObserver<double[]> obs) {
             if (obs == null) return;
             
             executor.submit(new Runnable() {
@@ -798,15 +798,15 @@ public interface AsyncVehicleServer {
         }
         
         @Override
-        public void setHome(UtmPose home) {
+        public void setHome(double[] home) {
             final Delayer<Void> delayer = new Delayer<Void>();
             server.setHome(home, delayer);
             delayer.awaitResult();
         }
         
         @Override
-        public UtmPose getHome() {
-            final Delayer<UtmPose> delayer = new Delayer<UtmPose>();
+        public double[] getHome() {
+            final Delayer<double[]> delayer = new Delayer<double[]>();
             server.getHome(delayer);
             return delayer.awaitResult();
         }

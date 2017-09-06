@@ -159,13 +159,13 @@ public class VbsBoatSimulator extends AbstractVehicleServer {
     }
 
     @Override
-    public void setHome(UtmPose home)
+    public void setHome(double[] home)
     {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
-    public UtmPose getHome()
+    public double[] getHome()
     {
         throw new UnsupportedOperationException("Not implemented yet");
     }
