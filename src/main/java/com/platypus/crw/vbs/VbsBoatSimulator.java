@@ -157,4 +157,22 @@ public class VbsBoatSimulator extends AbstractVehicleServer {
     public boolean isConnected() {
         return (_vbsServer.isConnected() && _imageServer.isConnected());
     }
+
+    @Override
+    public void setHome(UtmPose home)
+    {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public UtmPose getHome()
+    {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public void startGoHome()
+    {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 }

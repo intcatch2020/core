@@ -61,6 +61,12 @@ public interface AsyncVehicleServer {
   public void setGains(int axis, double[] gains, FunctionObserver<Void> obs);
   public void getGains(int axis, FunctionObserver<double[]> obs);
 
+  public void addCrumbListener(CrumbListener l, FunctionObserver<Void> obs);
+  public void removeCrumbListener(CrumbListener l, FunctionObserver<Void> obs);        
+  public void setHome(UtmPose home, FunctionObserver<Void> obs);
+  public void getHome(FunctionObserver<UtmPose> obs);
+  public void startGoHome(FunctionObserver<Void> obs);  
+
   /**
    * Utility class for handling AsyncVehicleServer objects.
    */
@@ -450,6 +456,62 @@ public interface AsyncVehicleServer {
             }
           });
         }
+
+        @Override
+        public void addCrumbListener(final CrumbListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable () {
+                @Override
+                public void run() {
+                    server.addCrumbListener(l);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
+
+        @Override
+        public void removeCrumbListener(final CrumbListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.removeCrumbListener(l);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
+
+        @Override
+        public void setHome(final UtmPose home, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+               @Override
+               public void run() {
+                   server.setHome(home);
+                   if (obs != null) obs.completed(null);
+               }
+            });
+        }
+        
+        @Override
+        public void getHome(final FunctionObserver<UtmPose> obs) {
+            if (obs == null) return;
+            
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    obs.completed(server.getHome());
+                }
+            });
+        }
+        
+        @Override
+        public void startGoHome(final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.startGoHome();
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }              
       };
     }
 
@@ -719,6 +781,41 @@ public interface AsyncVehicleServer {
           final Delayer<double[]> delayer = new Delayer<double[]>();
           server.getGains(axis, delayer);
           return delayer.awaitResult();
+        }
+
+        @Override
+        public void addCrumbListener(CrumbListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.addCrumbListener(l, delayer);
+            delayer.awaitResult();
+        }
+
+        @Override
+        public void removeCrumbListener(CrumbListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.removeCrumbListener(l, delayer);
+            delayer.awaitResult();
+        }
+        
+        @Override
+        public void setHome(UtmPose home) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.setHome(home, delayer);
+            delayer.awaitResult();
+        }
+        
+        @Override
+        public UtmPose getHome() {
+            final Delayer<UtmPose> delayer = new Delayer<UtmPose>();
+            server.getHome(delayer);
+            return delayer.awaitResult();
+        }
+        
+        @Override
+        public void startGoHome() {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.startGoHome(delayer);
+            delayer.awaitResult();        
         }
       };
     }

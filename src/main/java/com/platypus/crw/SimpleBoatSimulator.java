@@ -40,8 +40,8 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     public final SensorType[] _sensorTypes = new SensorType[3];
     public UtmPose _utmPose = new UtmPose(new Pose3D(476608.34, 4671214.40, 172.35, 0, 0, 0), new Utm(17, true));
     public Twist _velocity = new Twist();
-    //public UtmPose[] _waypoints = new UtmPose[0];
     public double[][] _waypoints = new double[0][0];
+    public UtmPose _home = new UtmPose(new Pose3D(476608.34, 4671214.40, 172.35, 0, 0, 0), new Utm(17, true));
     
     protected final Object _captureLock = new Object();
     protected TimerTask _captureTask = null;
@@ -207,7 +207,6 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
             if (_navigationTask != null) {
                 _navigationTask.cancel();
                 _navigationTask = null;
-                //_waypoints = new UtmPose[0];
                 _waypoints = new double[0][0];
                 setVelocity(new Twist());
             }
@@ -328,6 +327,24 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     public boolean isConnected() {
         // The simulated vehicle will always be connected
         return true;
+    }
+
+    @Override
+    public void setHome(UtmPose home)
+    {
+        _home = home.clone();
+    }
+
+    @Override
+    public UtmPose getHome()
+    {
+        return _home.clone();
+    }
+
+    @Override
+    public void startGoHome()
+    {
+        return;
     }
     
     /**

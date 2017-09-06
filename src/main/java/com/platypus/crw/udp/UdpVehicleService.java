@@ -6,6 +6,7 @@ import com.platypus.crw.CameraListener;
 import com.platypus.crw.ImageListener;
 import com.platypus.crw.PoseListener;
 import com.platypus.crw.SensorListener;
+import com.platypus.crw.CrumbListener;
 import com.platypus.crw.VehicleServer;
 import com.platypus.crw.VehicleServer.CameraState;
 import com.platypus.crw.VehicleServer.WaypointState;
@@ -60,6 +61,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
     protected final Map<Integer, Map<SocketAddress,Integer>> _sensorListeners = new TreeMap<Integer, Map<SocketAddress, Integer>>();
     protected final Map<SocketAddress, Integer> _velocityListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Map<SocketAddress, Integer> _waypointListeners = new LinkedHashMap<SocketAddress, Integer>();
+    protected final Map<SocketAddress, Integer> _crumbListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Timer _registrationTimer = new Timer();
 
     public UdpVehicleService(int port) {
@@ -102,6 +104,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
         _vehicleServer.addPoseListener(_handler);
         _vehicleServer.addVelocityListener(_handler);
         _vehicleServer.addWaypointListener(_handler);
+        _vehicleServer.addCrumbListener(_handler);
         
         for (int i = 0; i < _vehicleServer.getNumSensors(); ++i) {
             _vehicleServer.addSensorListener(i, _handler);
@@ -114,6 +117,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
         _vehicleServer.removePoseListener(_handler);
         _vehicleServer.removeVelocityListener(_handler);
         _vehicleServer.removeWaypointListener(_handler);
+        _vehicleServer.removeCrumbListener(_handler);
         
         for (int i = 0; i < _vehicleServer.getNumSensors(); ++i) {
             _vehicleServer.removeSensorListener(i, _handler);
@@ -160,6 +164,10 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                         _poseListeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
                     }
                     break;
+                case CMD_REGISTER_CRUMB_LISTENER:
+                    synchronized (_crumbListeners) {
+                        _crumbListeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
+                    }
                 case CMD_SET_POSE:
                     _vehicleServer.setPose(UdpConstants.readPose(req.stream));
                     if (resp.ticket != UdpConstants.NO_TICKET)
@@ -340,6 +348,23 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(r);
                     break;
+                case CMD_SET_HOME:
+                    UtmPose home = UdpConstants.readPose(req.stream);
+                    _vehicleServer.setHome(home);
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp); // Send void response                    
+                    break;
+                case CMD_GET_HOME:
+                    UtmPose gHome = _vehicleServer.getHome();
+                    UdpConstants.writePose(resp.stream, gHome);
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp);                    
+                    break;
+                case CMD_START_GO_HOME:
+                    _vehicleServer.startGoHome();
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp); // Send void response
+                    break;
                 default:
                     String warning = "Ignoring unknown command: " + command;
                     logger.log(Level.WARNING, warning);
@@ -369,7 +394,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
     // TODO: Clean up old streams!!
     private final StreamHandler _handler = new StreamHandler();
     
-    private class StreamHandler implements PoseListener, ImageListener, CameraListener, SensorListener, VelocityListener, WaypointListener {
+    private class StreamHandler implements PoseListener, ImageListener, CameraListener, SensorListener, VelocityListener, WaypointListener, CrumbListener {
 
         public void receivedPose(UtmPose pose) {
             // Quickly check if anyone is listening
@@ -389,6 +414,27 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                 }
             } catch (IOException e) {
                 throw new RuntimeException("Failed to serialize pose");
+            }
+        }
+
+        public void receivedCrumb(UtmPose crumb, long index) {
+            synchronized (_crumbListeners) {
+                if (_crumbListeners.isEmpty()) return;
+            }
+
+            try {
+                // Construct message
+                Response resp = new Response(UdpConstants.NO_TICKET, DUMMY_ADDRESS);
+                resp.stream.writeUTF(UdpConstants.COMMAND.CMD_SEND_CRUMB.str);
+                UdpConstants.writePose(resp.stream, crumb);
+                resp.stream.writeLong(index);
+
+                // Send to all listeners
+                synchronized (_crumbListeners) {
+                    _udpServer.bcast(resp, _crumbListeners.keySet());
+                }                
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to serialize crumb");
             }
         }
 
@@ -562,6 +608,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             updateRegistrations(_cameraListeners);
             updateRegistrations(_velocityListeners);
             updateRegistrations(_waypointListeners);
+            updateRegistrations(_crumbListeners);
             synchronized(_sensorListeners) {
                 for (Map<SocketAddress, Integer> sensorListener : _sensorListeners.values())
                     updateRegistrations(sensorListener);

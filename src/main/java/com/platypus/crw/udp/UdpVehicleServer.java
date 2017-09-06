@@ -6,6 +6,7 @@ import com.platypus.crw.FunctionObserver;
 import com.platypus.crw.ImageListener;
 import com.platypus.crw.PoseListener;
 import com.platypus.crw.SensorListener;
+import com.platypus.crw.CrumbListener;
 import com.platypus.crw.VehicleServer.CameraState;
 import com.platypus.crw.VehicleServer.SensorType;
 import com.platypus.crw.VehicleServer.WaypointState;
@@ -71,6 +72,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     protected final List<PoseListener> _poseListeners = new ArrayList<PoseListener>();
     protected final List<CameraListener> _cameraListeners = new ArrayList<CameraListener>();
     protected final List<WaypointListener> _waypointListeners = new ArrayList<WaypointListener>();
+    protected final List<CrumbListener> _crumbListeners = new ArrayList<CrumbListener>();
 
     public UdpVehicleServer() {
         // Create a UDP server that will handle RPC
@@ -206,6 +208,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             registerListener(_poseListeners, UdpConstants.COMMAND.CMD_REGISTER_POSE_LISTENER);
             registerListener(_cameraListeners, UdpConstants.COMMAND.CMD_REGISTER_CAMERA_LISTENER);
             registerListener(_waypointListeners, UdpConstants.COMMAND.CMD_REGISTER_WAYPOINT_LISTENER);
+            registerListener(_crumbListeners, UdpConstants.COMMAND.CMD_REGISTER_CRUMB_LISTENER);
 
             // Special case to handle sensor listener channels
             synchronized (_sensorListeners) {
@@ -261,6 +264,15 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                         }
                     }
                     return;
+                case CMD_SEND_CRUMB:
+                    UtmPose crumb = UdpConstants.readPose(req.stream);
+                    long index = req.stream.readLong();
+                    
+                    synchronized (_crumbListeners) {
+                        for (CrumbListener l : _crumbListeners) {
+                            l.receivedCrumb(crumb, index);
+                        }
+                    }
                 case CMD_SEND_SENSOR:
                     SensorData data = UdpConstants.readSensorData(req.stream);
                     synchronized (_sensorListeners) {
@@ -346,6 +358,9 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     }
                     obs.completed(gains);
                     return;
+                case CMD_GET_HOME:                    
+                    obs.completed(UdpConstants.readPose(req.stream));
+                    return;
                 case CMD_LIST:
                     Map<SocketAddress, String> clients = new HashMap<SocketAddress, String>();
                     int numClients = req.stream.readInt();
@@ -357,7 +372,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                         clients.put(new InetSocketAddress(hostname, port), name);
                     }
                     obs.completed(clients);
-                    return;
+                    return;                
                 case CMD_SET_POSE:
                 case CMD_SET_SENSOR_TYPE:
                 case CMD_SET_VELOCITY:
@@ -369,6 +384,8 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_STOP_WAYPOINTS:
                     obs.completed(null);
                     return;
+                case CMD_SET_HOME:
+                case CMD_START_GO_HOME:
                 default:
                     logger.log(Level.WARNING, "Ignoring unknown command: {0}", command);
             }
@@ -396,6 +413,24 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     public void removePoseListener(PoseListener l, FunctionObserver<Void> obs) {
         synchronized (_poseListeners) {
             _poseListeners.remove(l);
+        }
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+
+    public void addCrumbListener(CrumbListener l, FunctionObserver<Void> obs) {
+        synchronized (_crumbListeners) {
+            _crumbListeners.add(l);
+        }
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+
+    public void removeCrumbListener(CrumbListener l, FunctionObserver<Void> obs) {
+        synchronized (_crumbListeners) {
+            _crumbListeners.remove(l);
         }
         if (obs != null) {
             obs.completed(null);
@@ -999,6 +1034,75 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
+
+    public void setHome(UtmPose home, FunctionObserver<Void> obs) {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }    
+
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_SET_HOME.str);
+            UdpConstants.writePose(response.stream, home);
+            if (obs != null) _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+        }            
+    }    
+
+    public void getHome(FunctionObserver<UtmPose> obs) {
+        // This is a pure getter function, just do nothing if there is no one listening.
+        if (obs == null) return;
+
+        if (_vehicleServer == null) {
+            obs.failed(FunctionObserver.FunctionError.ERROR);
+            return;
+        }
+
+        long ticket = _ticketCounter.incrementAndGet();
+
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_HOME.str);
+            _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);            
+        } catch (IOException e) {
+            obs.failed(FunctionObserver.FunctionError.ERROR);
+        }
+    }
+
+    public void startGoHome(FunctionObserver<Void> obs) {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }
+        
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_START_GO_HOME.str);
+            if (obs != null) _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            // TODO: Should I also flag something somewhere?
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+        }        
+    }    
+
+
     
     /**
      * Special function that queries the already-set registry to find the list

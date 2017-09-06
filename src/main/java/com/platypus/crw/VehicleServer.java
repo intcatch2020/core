@@ -55,10 +55,17 @@ public interface VehicleServer {
 	public WaypointState getWaypointStatus();
 	public int getWaypointsIndex();
 
+	public void addCrumbListener(CrumbListener l);
+	public void removeCrumbListener(CrumbListener l);
+
 	public boolean isConnected();
 	public boolean isAutonomous();
 	public void setAutonomous(boolean auto);
         
 	public void setGains(int axis, double[] gains);
 	public double[] getGains(int axis);
+
+	public void setHome(UtmPose home);
+	public UtmPose getHome();
+	public void startGoHome();
 }
