@@ -103,6 +103,28 @@ public interface AsyncVehicleServer {
             }
           });
         }
+        
+        @Override
+        public void addCrumbListener(final CrumbListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable () {
+                @Override
+                public void run() {
+                    server.addCrumbListener(l);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
+
+        @Override
+        public void removeCrumbListener(final CrumbListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.removeCrumbListener(l);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }        
 
         @Override
         public void setPose(final UtmPose state, final FunctionObserver<Void> obs) {
@@ -458,28 +480,6 @@ public interface AsyncVehicleServer {
         }
 
         @Override
-        public void addCrumbListener(final CrumbListener l, final FunctionObserver<Void> obs) {
-            executor.submit(new Runnable () {
-                @Override
-                public void run() {
-                    server.addCrumbListener(l);
-                    if (obs != null) obs.completed(null);
-                }
-            });
-        }
-
-        @Override
-        public void removeCrumbListener(final CrumbListener l, final FunctionObserver<Void> obs) {
-            executor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    server.removeCrumbListener(l);
-                    if (obs != null) obs.completed(null);
-                }
-            });
-        }
-
-        @Override
         public void setHome(final double[] home, final FunctionObserver<Void> obs) {
             executor.submit(new Runnable() {
                @Override
@@ -562,6 +562,20 @@ public interface AsyncVehicleServer {
           server.removePoseListener(l, delayer);
           delayer.awaitResult();
         }
+        
+        @Override
+        public void addCrumbListener(CrumbListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.addCrumbListener(l, delayer);
+            delayer.awaitResult();
+        }
+
+        @Override
+        public void removeCrumbListener(CrumbListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.removeCrumbListener(l, delayer);
+            delayer.awaitResult();
+        }        
 
         @Override
         public void setPose(UtmPose state) {
@@ -781,20 +795,6 @@ public interface AsyncVehicleServer {
           final Delayer<double[]> delayer = new Delayer<double[]>();
           server.getGains(axis, delayer);
           return delayer.awaitResult();
-        }
-
-        @Override
-        public void addCrumbListener(CrumbListener l) {
-            final Delayer<Void> delayer = new Delayer<Void>();
-            server.addCrumbListener(l, delayer);
-            delayer.awaitResult();
-        }
-
-        @Override
-        public void removeCrumbListener(CrumbListener l) {
-            final Delayer<Void> delayer = new Delayer<Void>();
-            server.removeCrumbListener(l, delayer);
-            delayer.awaitResult();
         }
         
         @Override

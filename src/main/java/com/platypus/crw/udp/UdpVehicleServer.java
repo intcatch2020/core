@@ -273,6 +273,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                             l.receivedCrumb(crumb, index);
                         }
                     }
+                    return;
                 case CMD_SEND_SENSOR:
                     SensorData data = UdpConstants.readSensorData(req.stream);
                     synchronized (_sensorListeners) {

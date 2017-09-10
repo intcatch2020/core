@@ -168,6 +168,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     synchronized (_crumbListeners) {
                         _crumbListeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
                     }
+                    break;
                 case CMD_SET_POSE:
                     _vehicleServer.setPose(UdpConstants.readPose(req.stream));
                     if (resp.ticket != UdpConstants.NO_TICKET)
