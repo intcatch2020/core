@@ -66,6 +66,8 @@ public interface AsyncVehicleServer {
   public void setHome(double[] home, FunctionObserver<Void> obs);
   public void getHome(FunctionObserver<double[]> obs);
   public void startGoHome(FunctionObserver<Void> obs);  
+  
+  public void newAutonomousPredicateMessage(String apm, FunctionObserver<Void> obs);          
 
   /**
    * Utility class for handling AsyncVehicleServer objects.
@@ -511,7 +513,19 @@ public interface AsyncVehicleServer {
                     if (obs != null) obs.completed(null);
                 }
             });
-        }              
+        }
+        
+        @Override
+        public void newAutonomousPredicateMessage(final String apm, final FunctionObserver<Void> obs)
+        {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.newAutonomousPredicateMessage(apm);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
       };
     }
 
@@ -816,6 +830,13 @@ public interface AsyncVehicleServer {
             final Delayer<Void> delayer = new Delayer<Void>();
             server.startGoHome(delayer);
             delayer.awaitResult();        
+        }
+        
+        @Override
+        public void newAutonomousPredicateMessage(String apm) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.newAutonomousPredicateMessage(apm, delayer);
+            delayer.awaitResult();
         }
       };
     }

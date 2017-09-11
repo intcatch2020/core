@@ -336,7 +336,13 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     @Override
     public void startGoHome()
     {
-        return;
+        
+    }
+    
+    @Override
+    public void newAutonomousPredicateMessage(String apm)
+    {
+        
     }
     
     /**

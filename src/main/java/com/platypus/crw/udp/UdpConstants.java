@@ -81,7 +81,8 @@ public class UdpConstants {
         CMD_GET_HOME("GH"),
         CMD_START_GO_HOME("SGH"),
         CMD_REGISTER_CRUMB_LISTENER("RCL"),
-        CMD_SEND_CRUMB("_B");
+        CMD_SEND_CRUMB("_B"),
+        CMD_NEW_AUTONOMOUS_PREDICATE_MSG("APM");
 
         COMMAND(String s) {
             str = s;
@@ -122,7 +123,7 @@ public class UdpConstants {
         double rz = in.readDouble();
         
         return new Twist(x,y,z,rx,ry,rz);
-    }
+    }        
     
     public static void writeLatLng(DataOutputStream out, double[] latLng) throws IOException {
         out.writeDouble(latLng[0]);

@@ -175,4 +175,10 @@ public class VbsBoatSimulator extends AbstractVehicleServer {
     {
         throw new UnsupportedOperationException("Not implemented yet");
     }
+    
+    @Override
+    public void newAutonomousPredicateMessage(String apm)
+    {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 }

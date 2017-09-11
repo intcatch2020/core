@@ -68,4 +68,6 @@ public interface VehicleServer {
 	public void setHome(double[] home);
 	public double[] getHome();
 	public void startGoHome();
+        
+        public void newAutonomousPredicateMessage(String apm);
 }

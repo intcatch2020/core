@@ -366,6 +366,12 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp); // Send void response
                     break;
+                case CMD_NEW_AUTONOMOUS_PREDICATE_MSG:
+                    String apm = req.stream.readUTF();
+                    _vehicleServer.newAutonomousPredicateMessage(apm);
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp); // Send void response
+                    break;
                 default:
                     String warning = "Ignoring unknown command: " + command;
                     logger.log(Level.WARNING, warning);

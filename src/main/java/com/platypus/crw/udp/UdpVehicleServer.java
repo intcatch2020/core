@@ -303,7 +303,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                             l.waypointUpdate(wState);
                         }
                     }
-                    return;
+                    return;          
             }
             
             // For two-way commands (functions), check for a ticket
@@ -383,10 +383,11 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_STOP_CAMERA:
                 case CMD_START_WAYPOINTS:
                 case CMD_STOP_WAYPOINTS:
-                    obs.completed(null);
-                    return;
                 case CMD_SET_HOME:
                 case CMD_START_GO_HOME:
+                case CMD_NEW_AUTONOMOUS_PREDICATE_MSG:
+                    obs.completed(null);
+                    return;
                 default:
                     logger.log(Level.WARNING, "Ignoring unknown command: {0}", command);
             }
@@ -1101,7 +1102,31 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 obs.failed(FunctionObserver.FunctionError.ERROR);
             }
         }        
-    }    
+    }
+    
+    public void newAutonomousPredicateMessage(String apm, FunctionObserver<Void> obs)
+    {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }    
+
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_NEW_AUTONOMOUS_PREDICATE_MSG.str);
+            response.stream.writeUTF(apm);
+            if (obs != null) _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+        }         
+    }
 
 
     
