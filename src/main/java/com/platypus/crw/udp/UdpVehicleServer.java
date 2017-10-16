@@ -8,7 +8,7 @@ import com.platypus.crw.PoseListener;
 import com.platypus.crw.SensorListener;
 import com.platypus.crw.CrumbListener;
 import com.platypus.crw.VehicleServer.CameraState;
-import com.platypus.crw.VehicleServer.SensorType;
+import com.platypus.crw.VehicleServer.DataType;
 import com.platypus.crw.VehicleServer.WaypointState;
 import com.platypus.crw.VelocityListener;
 import com.platypus.crw.WaypointListener;
@@ -66,7 +66,8 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     int _imageReassemblyTicket;
     byte[][] _imageReassemblyTable;
     
-    protected final Map<Integer, List<SensorListener>> _sensorListeners = new TreeMap<Integer, List<SensorListener>>();
+    //protected final Map<Integer, List<SensorListener>> _sensorListeners = new TreeMap<Integer, List<SensorListener>>();
+    protected final List<SensorListener> _sensorListeners = new ArrayList<SensorListener>();
     protected final List<ImageListener> _imageListeners = new ArrayList<ImageListener>();
     protected final List<VelocityListener> _velocityListeners = new ArrayList<VelocityListener>();
     protected final List<PoseListener> _poseListeners = new ArrayList<PoseListener>();
@@ -209,7 +210,8 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             registerListener(_cameraListeners, UdpConstants.COMMAND.CMD_REGISTER_CAMERA_LISTENER);
             registerListener(_waypointListeners, UdpConstants.COMMAND.CMD_REGISTER_WAYPOINT_LISTENER);
             registerListener(_crumbListeners, UdpConstants.COMMAND.CMD_REGISTER_CRUMB_LISTENER);
-
+            registerListener(_sensorListeners, UdpConstants.COMMAND.CMD_REGISTER_SENSOR_LISTENER);
+            /*
             // Special case to handle sensor listener channels
             synchronized (_sensorListeners) {
                 for (Integer i : _sensorListeners.keySet()) {
@@ -225,6 +227,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     }
                 }
             }
+            */
         }
     }
 
@@ -278,12 +281,11 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     SensorData data = UdpConstants.readSensorData(req.stream);
                     synchronized (_sensorListeners) {
                         // If there is no list of listeners, there is nothing to notify
-                        if (!_sensorListeners.containsKey(data.channel)) {
-                            return;
-                        }
+                        //if (!_sensorListeners.containsKey(data.channel)) {
+                        if (_sensorListeners.isEmpty()) return;
 
                         // Notify each listener in the appropriate list
-                        for (SensorListener l : _sensorListeners.get(data.channel)) {
+                        for (SensorListener l : _sensorListeners) {
                             l.receivedSensor(data);
                         }
                     }
@@ -323,13 +325,15 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_GET_CAMERA_STATUS:
                     obs.completed(CameraState.values()[req.stream.readByte()]);
                     return;
+                /*
                 case CMD_GET_SENSOR_TYPE:
-                    obs.completed(SensorType.values()[Math.max(req.stream.readByte(),
-                                                               SensorType.values().length)]);
+                    obs.completed(DataType.values()[Math.min(req.stream.readByte(),
+                                                               DataType.values().length - 1)]);
                     return;
                 case CMD_GET_NUM_SENSORS:
                     obs.completed(req.stream.readInt());
                     return;
+                */    
                 case CMD_GET_VELOCITY:
                     obs.completed(UdpConstants.readTwist(req.stream));
                     return;
@@ -375,7 +379,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     obs.completed(clients);
                     return;                
                 case CMD_SET_POSE:
-                case CMD_SET_SENSOR_TYPE:
+                //case CMD_SET_SENSOR_TYPE:
                 case CMD_SET_VELOCITY:
                 case CMD_SET_AUTONOMOUS:
                 case CMD_SET_GAINS:
@@ -620,8 +624,9 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    public void addSensorListener(int channel, SensorListener l, FunctionObserver<Void> obs) {
+    public void addSensorListener(SensorListener l, FunctionObserver<Void> obs) {
         synchronized (_sensorListeners) {
+            /*
             // If there were no previous listeners for the channel, create a list
             if (!_sensorListeners.containsKey(channel)) {
                 _sensorListeners.put(channel, new ArrayList<SensorListener>());
@@ -629,32 +634,29 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
 
             // Add the listener to the appropriate list
             _sensorListeners.get(channel).add(l);
+            */
+            _sensorListeners.add(l);
         }
         if (obs != null) {
             obs.completed(null);
         }
     }
 
-    public void removeSensorListener(int channel, SensorListener l, FunctionObserver<Void> obs) {
+    public void removeSensorListener(SensorListener l, FunctionObserver<Void> obs) {
         synchronized (_sensorListeners) {
             // If there is no list of listeners, there is nothing to remove
-            if (!_sensorListeners.containsKey(channel)) {
-                return;
-            }
+            //if (!_sensorListeners.containsKey(channel)) {
+            if (_sensorListeners.isEmpty()) return;
 
             // Remove the listener from the appropriate list
-            _sensorListeners.get(channel).remove(l);
-
-            // If there are no more listeners for the channel, delete the list
-            if (_sensorListeners.get(channel).isEmpty()) {
-                _sensorListeners.remove(channel);
-            }
+            _sensorListeners.remove(l);
         }
         if (obs != null) {
             obs.completed(null);
         }
     }
 
+    /*
     public void setSensorType(int channel, SensorType type, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
@@ -679,8 +681,10 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             }
         }
     }
+    */
 
-    public void getSensorType(int channel, FunctionObserver<SensorType> obs) {
+    /*
+    public void getSensorType(int channel, FunctionObserver<DataType> obs) {
         // This is a pure getter function, just do nothing if there is no one listening.
         if (obs == null) return;
 
@@ -700,7 +704,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         } catch (IOException e) {
             obs.failed(FunctionObserver.FunctionError.ERROR);
         }
-    }
+    }    
 
     public void getNumSensors(FunctionObserver<Integer> obs) {
         // This is a pure getter function, just do nothing if there is no one listening.
@@ -722,6 +726,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             obs.failed(FunctionObserver.FunctionError.ERROR);
         }
     }
+    */
 
     public void addVelocityListener(VelocityListener l, FunctionObserver<Void> obs) {
         synchronized (_velocityListeners) {

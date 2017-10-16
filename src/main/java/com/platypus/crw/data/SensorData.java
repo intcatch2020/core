@@ -1,6 +1,6 @@
 package com.platypus.crw.data;
 
-import com.platypus.crw.VehicleServer.SensorType;
+import com.platypus.crw.VehicleServer.DataType;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -11,23 +11,45 @@ import java.util.Arrays;
  */
 public class SensorData implements Cloneable, Serializable  {
     public int channel;
-    public double[] data;
-    public SensorType type;
+    public DataType type;
+    public double value;
+    public double[] latlng;
     
     @Override
     public String toString() {
-        return "Sensor" + channel + "(" + type + ")" + Arrays.toString(data);
+        return "Sensor " + channel + ", " + type.getType() + 
+                ", @[" + latlng[0] + "," +  latlng[1] + "] = " 
+                + value + " " + type.getUnits();
+    }
+    
+    public int key() {
+        // simple hashkey that can be used to identify what sensors are 
+        //      connected to a boat. Only channel and type matter for this.        
+        int hash = 3;
+        hash = 97 * hash + this.channel;
+        hash = 97 * hash + this.type.hashCode();
+        return hash;
     }
     
     @Override
     public int hashCode() {
         int hash = 3;
         hash = 97 * hash + this.channel;
-        hash = 97 * hash + Arrays.hashCode(this.data);
+        hash = 97 * hash + Double.hashCode(this.value);
         hash = 97 * hash + (this.type != null ? this.type.hashCode() : 0);
         return hash;
     }
 
+    public boolean isSameProbe(SensorData other) {
+        if (this.channel != other.channel) {
+            return false;
+        }
+        if (!this.type.getType().equals(other.type.getType())) {
+            return false;
+        }        
+        return true;
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -37,15 +59,18 @@ public class SensorData implements Cloneable, Serializable  {
             return false;
         }
         final SensorData other = (SensorData) obj;
+        if (!Arrays.equals(this.latlng, other.latlng)) {
+            return false;
+        }
+        if (value != other.value) {
+            return false;
+        }
+        if (!this.type.getType().equals(other.type.getType())) {
+            return false;
+        }
         if (this.channel != other.channel) {
             return false;
-        }
-        if (!Arrays.equals(this.data, other.data)) {
-            return false;
-        }
-        if (this.type != other.type) {
-            return false;
-        }
+        }        
         return true;
-    }
+    }    
 }

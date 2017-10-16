@@ -16,7 +16,8 @@ import javax.imageio.ImageIO;
 public abstract class AbstractVehicleServer implements VehicleServer {
 
     protected double[][] _gains = new double[6][3];
-    protected final Map<Integer, List<SensorListener>> _sensorListeners = new TreeMap<Integer, List<SensorListener>>();
+    // protected final Map<Integer, List<SensorListener>> _sensorListeners = new TreeMap<Integer, List<SensorListener>>();
+    protected final List<SensorListener> _sensorListeners = new ArrayList<SensorListener>();
     protected final List<ImageListener> _imageListeners = new ArrayList<ImageListener>();
     protected final List<VelocityListener> _velocityListeners = new ArrayList<VelocityListener>();
     protected final List<PoseListener> _stateListeners = new ArrayList<PoseListener>();
@@ -127,38 +128,49 @@ public abstract class AbstractVehicleServer implements VehicleServer {
     }
 
     @Override
-    public void addSensorListener(int channel, SensorListener l) {
+    //public void addSensorListener(int channel, SensorListener l) {
+    public void addSensorListener(SensorListener l) {
         synchronized (_sensorListeners) {
             // If there were no previous listeners for the channel, create a list
+            /*
             if (!_sensorListeners.containsKey(channel)) {
                 _sensorListeners.put(channel, new ArrayList<SensorListener>());
             }
+            */
 
             // Add the listener to the appropriate list
-            _sensorListeners.get(channel).add(l);
+            //_sensorListeners.get(channel).add(l);
+            _sensorListeners.add(l);
         }
     }
 
     @Override
-    public void removeSensorListener(int channel, SensorListener l) {
+    public void removeSensorListener(SensorListener l) {
         synchronized (_sensorListeners) {
             // If there is no list of listeners, there is nothing to remove
+            /*
             if (!_sensorListeners.containsKey(channel)) {
                 return;
             }
 
             // Remove the listener from the appropriate list
             _sensorListeners.get(channel).remove(l);
+            */
+            _sensorListeners.remove(l);
 
+            /*
             // If there are no more listeners for the channel, delete the list
             if (_sensorListeners.get(channel).isEmpty()) {
                 _sensorListeners.remove(channel);
             }
+            */
         }
     }
 
-    protected void sendSensor(int channel, SensorData reading) {
+    //protected void sendSensor(int channel, SensorData reading) {
+    protected void sendSensor(SensorData reading) {
         synchronized (_sensorListeners) {
+            /*
             // If there is no list of listeners, there is nothing to notify
             if (!_sensorListeners.containsKey(channel)) {
                 return;
@@ -166,6 +178,10 @@ public abstract class AbstractVehicleServer implements VehicleServer {
 
             // Notify each listener in the appropriate list
             for (SensorListener l : _sensorListeners.get(channel)) {
+                l.receivedSensor(reading);
+            }
+            */
+            for (SensorListener l : _sensorListeners) {
                 l.receivedSensor(reading);
             }
         }

@@ -37,7 +37,7 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     private static final Logger logger = Logger.getLogger(SimpleBoatSimulator.class.getName());
     public static final int UPDATE_INTERVAL_MS = 100;
     
-    public final SensorType[] _sensorTypes = new SensorType[3];
+    //public final SensorType[] _sensorTypes = new SensorType[3];
     public UtmPose _utmPose = new UtmPose(new Pose3D(476608.34, 4671214.40, 172.35, 0, 0, 0), new Utm(17, true));
     public Twist _velocity = new Twist();
     public double[][] _waypoints = new double[0][0];
@@ -74,6 +74,7 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
             sendVelocity(velocity);
 
             // Generate simulated sensor data
+            /*
             SensorData reading = new SensorData();
             reading.channel = 0;
             reading.data = new double[3];
@@ -89,6 +90,7 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
             sendSensor(1, reading);
             reading.channel = 2;
             sendSensor(2, reading);
+            */
         }
     };
     
@@ -120,10 +122,12 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
         return toCompressedImage(image);
     }
 
+    /*
     @Override
     public SensorType getSensorType(int channel) {
         return _sensorTypes[channel];
     }
+    */
 
     @Override
     public double[][] getWaypoints() {
@@ -132,10 +136,12 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
         }
     }
 
+    /*
     @Override
     public void setSensorType(int channel, SensorType type) {
         _sensorTypes[channel] = type;
     }
+    */
 
     @Override
     public void setPose(UtmPose state) {
@@ -289,10 +295,12 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
         return _utmPose.clone();
     }
 
+    /*
     @Override
     public int getNumSensors() {
         return _sensorTypes.length;
     }
+    */
 
     @Override
     public void setVelocity(Twist velocity) {

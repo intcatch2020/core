@@ -61,6 +61,7 @@ public class VbsBoatSimulator extends AbstractVehicleServer {
         return _imageServer.getDirectImage();
     }
 
+    /*
     @Override
     public int getNumSensors() {
         return 0;
@@ -75,6 +76,7 @@ public class VbsBoatSimulator extends AbstractVehicleServer {
     public void setSensorType(int channel, SensorType type) {
         // Do nothing
     }
+    */
 
     @Override
     public UtmPose getPose() {

@@ -17,7 +17,38 @@ import com.platypus.crw.data.UtmPose;
  */
 public interface VehicleServer {
 
-	public enum SensorType { ANALOG, DIGITAL, ES2, HDS_DEPTH, HDS_TEMP, GPS,ATLAS_DO,ATLAS_PH, BATTERY, UNKNOWN };
+	//public enum SensorType { ANALOG, DIGITAL, ES2, HDS_DEPTH, HDS_TEMP, GPS,ATLAS_DO,ATLAS_PH, BATTERY, UNKNOWN };
+        public enum DataType
+        {
+            UNKNOWN("?", "?"),
+            EC_ATLAS("EC", "uS/cm"),
+            EC_GOSYS("EC", "uS/cm"),
+            T_ATLAS("T", "C"),
+            T_GOSYS("T", "C"),
+            DO_ATLAS("DO", "mg/L"),
+            DO_GOSYS("DO", "mg/L"),
+            PH_ATLAS("pH", ""),
+            PH_GOSYS("pH", ""),
+            BATTERY("battery", "V"),
+            SALINITY("salinity", "g/L"),
+            TURBIDITY("turbidity", "NTU"),
+            REDOX("redox", "mV"),
+            CHLOROPHYLLA("cholorphyll-a", "ug/L"),
+            TOC("TOC", "mg/L"),
+            NITRATE("nitrate", "ug/L"),
+            NITRITE("nitrite", "ug/L");
+
+            String units;
+            String type;
+
+            DataType(String _type, String _units)
+            {
+                type = _type;
+                units = _units;
+            }
+            public String getUnits() { return units; }
+            public String getType() { return type; }
+        }
 	public enum WaypointState { GOING, PAUSED, DONE, CANCELLED, OFF, UNKNOWN };
 	public enum CameraState { CAPTURING, DONE, CANCELLED, OFF, UNKNOWN };
 
@@ -36,11 +67,11 @@ public interface VehicleServer {
 	public void stopCamera();
 	public CameraState getCameraStatus();
 	
-	public void addSensorListener(int channel, SensorListener l);
-	public void removeSensorListener(int channel, SensorListener l);
-	public void setSensorType(int channel, SensorType type);
-	public SensorType getSensorType(int channel);
-	public int getNumSensors();
+	public void addSensorListener(SensorListener l);
+	public void removeSensorListener(SensorListener l);
+	//public void setSensorType(int channel, SensorType type);
+	//public SensorType getSensorType(int channel);
+	//public int getNumSensors();
 	
 	public void addVelocityListener(VelocityListener l);
 	public void removeVelocityListener(VelocityListener l);

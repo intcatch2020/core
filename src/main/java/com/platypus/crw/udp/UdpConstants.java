@@ -1,6 +1,6 @@
 package com.platypus.crw.udp;
 
-import com.platypus.crw.VehicleServer.SensorType;
+import com.platypus.crw.VehicleServer.DataType;
 import com.platypus.crw.data.SensorData;
 import com.platypus.crw.data.Twist;
 import com.platypus.crw.data.Utm;
@@ -58,9 +58,9 @@ public class UdpConstants {
         CMD_GET_CAMERA_STATUS("CS"),
         CMD_REGISTER_SENSOR_LISTENER("RSL"),
         CMD_SEND_SENSOR("_S"),
-        CMD_SET_SENSOR_TYPE("SS"),
-        CMD_GET_SENSOR_TYPE("GS"),
-        CMD_GET_NUM_SENSORS("GNS"),
+        //CMD_SET_SENSOR_TYPE("SS"),
+        //CMD_GET_SENSOR_TYPE("GS"),
+        //CMD_GET_NUM_SENSORS("GNS"),
         CMD_REGISTER_VELOCITY_LISTENER("RVL"),
         CMD_SEND_VELOCITY("_V"),
         CMD_SET_VELOCITY("SV"),
@@ -173,19 +173,18 @@ public class UdpConstants {
     public static void writeSensorData(DataOutputStream out, SensorData sensor) throws IOException {
         out.writeInt(sensor.channel);
         out.writeByte(sensor.type.ordinal());
-        out.writeInt(sensor.data.length);
-        for (int i = 0; i < sensor.data.length; ++i)
-            out.writeDouble(sensor.data[i]);
+        out.writeDouble(sensor.value);
+        out.writeDouble(sensor.latlng[0]);
+        out.writeDouble(sensor.latlng[1]);
     }
     
     public static SensorData readSensorData(DataInputStream in) throws IOException {
         SensorData sensor = new SensorData();
         sensor.channel = in.readInt();
         int type_index = in.readUnsignedByte();
-        sensor.type = SensorType.values()[Math.min(type_index, SensorType.values().length - 1)];
-        sensor.data = new double[in.readInt()];
-        for (int i = 0; i < sensor.data.length; ++i)
-            sensor.data[i] = in.readDouble();
+        sensor.type = DataType.values()[Math.max(type_index, 0)];
+        sensor.value = in.readDouble();
+        sensor.latlng = new double[]{in.readDouble(), in.readDouble()};
         return sensor;
     }
 }

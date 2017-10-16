@@ -2,7 +2,7 @@ package com.platypus.crw;
 
 import com.platypus.crw.FunctionObserver.FunctionError;
 import com.platypus.crw.VehicleServer.CameraState;
-import com.platypus.crw.VehicleServer.SensorType;
+import com.platypus.crw.VehicleServer.DataType;
 import com.platypus.crw.VehicleServer.WaypointState;
 import com.platypus.crw.data.Twist;
 import com.platypus.crw.data.UtmPose;
@@ -35,11 +35,11 @@ public interface AsyncVehicleServer {
   public void stopCamera(FunctionObserver<Void> obs);
   public void getCameraStatus(FunctionObserver<CameraState> obs);
 
-  public void addSensorListener(int channel, SensorListener l, FunctionObserver<Void> obs);
-  public void removeSensorListener(int channel, SensorListener l, FunctionObserver<Void> obs);
-  public void setSensorType(int channel, SensorType type, FunctionObserver<Void> obs);
-  public void getSensorType(int channel, FunctionObserver<SensorType> obs);
-  public void getNumSensors(FunctionObserver<Integer> obs);
+  public void addSensorListener(SensorListener l, FunctionObserver<Void> obs);
+  public void removeSensorListener(SensorListener l, FunctionObserver<Void> obs);
+  //public void setSensorType(int channel, SensorType type, FunctionObserver<Void> obs);
+  //public void getSensorType(int channel, FunctionObserver<SensorType> obs);
+  //public void getNumSensors(FunctionObserver<Integer> obs);
 
   public void addVelocityListener(VelocityListener l, FunctionObserver<Void> obs);
   public void removeVelocityListener(VelocityListener l, FunctionObserver<Void> obs);
@@ -240,29 +240,30 @@ public interface AsyncVehicleServer {
             }
           });
         }
-
+        
         @Override
-        public void addSensorListener(final int channel, final SensorListener l, final FunctionObserver<Void> obs) {
+        public void addSensorListener(final SensorListener l, final FunctionObserver<Void> obs) {
           executor.submit(new Runnable() {
             @Override
             public void run() {
-              server.addSensorListener(channel, l);
+              server.addSensorListener(l);
               if (obs != null) obs.completed(null);
             }
           });
         }
 
         @Override
-        public void removeSensorListener(final int channel, final SensorListener l, final FunctionObserver<Void> obs) {
+        public void removeSensorListener(final SensorListener l, final FunctionObserver<Void> obs) {
           executor.submit(new Runnable() {
             @Override
             public void run() {
-              server.removeSensorListener(channel, l);
+              server.removeSensorListener(l);
               if (obs != null) obs.completed(null);
             }
           });
         }
 
+        /*
         @Override
         public void setSensorType(final int channel, final SensorType type, final FunctionObserver<Void> obs) {
           executor.submit(new Runnable() {
@@ -284,7 +285,7 @@ public interface AsyncVehicleServer {
               obs.completed(server.getSensorType(channel));
             }
           });
-        }
+        }        
 
         @Override
         public void getNumSensors(final FunctionObserver<Integer> obs) {
@@ -297,6 +298,7 @@ public interface AsyncVehicleServer {
             }
           });
         }
+        */
 
         @Override
         public void addVelocityListener(final VelocityListener l, final FunctionObserver<Void> obs) {
@@ -660,21 +662,22 @@ public interface AsyncVehicleServer {
           server.getCameraStatus(delayer);
           return delayer.awaitResult();
         }
-
+        
         @Override
-        public void addSensorListener(int channel, SensorListener l) {
+        public void addSensorListener(SensorListener l) {
           final Delayer<Void> delayer = new Delayer<Void>();
-          server.addSensorListener(channel, l, delayer);
+          server.addSensorListener(l, delayer);
           delayer.awaitResult();
         }
 
         @Override
-        public void removeSensorListener(int channel, SensorListener l) {
+        public void removeSensorListener(SensorListener l) {
           final Delayer<Void> delayer = new Delayer<Void>();
-          server.removeSensorListener(channel, l, delayer);
+          server.removeSensorListener(l, delayer);
           delayer.awaitResult();
         }
 
+        /*
         @Override
         public void setSensorType(int channel, SensorType type) {
           final Delayer<Void> delayer = new Delayer<Void>();
@@ -696,6 +699,7 @@ public interface AsyncVehicleServer {
           Integer nSensors = delayer.awaitResult();
           return (nSensors != null) ? nSensors : -1;
         }
+        */
 
         @Override
         public void addVelocityListener(VelocityListener l) {
