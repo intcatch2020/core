@@ -73,11 +73,14 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
             Twist velocity = _velocity.clone();
             sendVelocity(velocity);
 
-            // Generate simulated sensor data
-            /*
+            // Generate simulated sensor data            
             SensorData reading = new SensorData();
             reading.channel = 0;
-            reading.data = new double[3];
+            reading.value = 0;
+            reading.type = DataType.BATTERY;
+            reading.latlng = new double[]{45.0, 10.0};
+            sendSensor(reading);
+            /*
             reading.type = SensorType.ES2;
 
             Random random = new Random();

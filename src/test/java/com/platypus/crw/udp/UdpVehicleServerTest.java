@@ -352,14 +352,12 @@ public class UdpVehicleServerTest {
     public void testAddSensorListener() {
         final CountDownLatch latch = new CountDownLatch(1);
 
-        System.out.println("ASDF start");
         // Register a new pose listener on this server
         UdpVehicleServer instance = new UdpVehicleServer(serviceAddress);
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         server.addSensorListener(new SensorListener() {
             @Override
             public void receivedSensor(SensorData data) {
-                System.out.println("ASDF end");
                 latch.countDown();
             }
         });
