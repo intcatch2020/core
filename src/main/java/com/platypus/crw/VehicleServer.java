@@ -21,10 +21,11 @@ public interface VehicleServer {
         public enum DataType
         {
             UNKNOWN("?", "?"),
-            EC_ATLAS("EC", "uS/cm"),
+            EC_DECAGON("EC", "uS/cm"),
             EC_GOSYS("EC", "uS/cm"),
-            T_ATLAS("T", "C"),
+            T_DECAGON("T", "C"),
             T_GOSYS("T", "C"),
+            T_LOWRANCE("T", "C"),
             DO_ATLAS("DO", "mg/L"),
             DO_GOSYS("DO", "mg/L"),
             PH_ATLAS("pH", ""),
@@ -36,7 +37,8 @@ public interface VehicleServer {
             CHLOROPHYLLA("cholorphyll-a", "ug/L"),
             TOC("TOC", "mg/L"),
             NITRATE("nitrate", "ug/L"),
-            NITRITE("nitrite", "ug/L");
+            NITRITE("nitrite", "ug/L"),
+            DEPTH_LOWRANCE("depth", "m");
 
             String units;
             String type;
