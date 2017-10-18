@@ -58,9 +58,7 @@ public class UdpConstants {
         CMD_GET_CAMERA_STATUS("CS"),
         CMD_REGISTER_SENSOR_LISTENER("RSL"),
         CMD_SEND_SENSOR("_S"),
-        //CMD_SET_SENSOR_TYPE("SS"),
-        //CMD_GET_SENSOR_TYPE("GS"),
-        //CMD_GET_NUM_SENSORS("GNS"),
+        CMD_ACK_SENSORDATA("ASD"),
         CMD_REGISTER_VELOCITY_LISTENER("RVL"),
         CMD_SEND_VELOCITY("_V"),
         CMD_SET_VELOCITY("SV"),
@@ -82,6 +80,7 @@ public class UdpConstants {
         CMD_START_GO_HOME("SGH"),
         CMD_REGISTER_CRUMB_LISTENER("RCL"),
         CMD_SEND_CRUMB("_B"),
+        CMD_ACK_CRUMB("AC"),
         CMD_NEW_AUTONOMOUS_PREDICATE_MSG("APM");
 
         COMMAND(String s) {

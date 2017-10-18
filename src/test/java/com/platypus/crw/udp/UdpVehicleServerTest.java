@@ -17,7 +17,6 @@ import com.platypus.crw.PoseListener;
 import com.platypus.crw.SensorListener;
 import com.platypus.crw.SimpleBoatSimulator;
 import com.platypus.crw.VehicleServer.CameraState;
-import com.platypus.crw.VehicleServer.DataType;
 import com.platypus.crw.VehicleServer.WaypointState;
 import com.platypus.crw.VelocityListener;
 import com.platypus.crw.WaypointListener;
@@ -357,7 +356,7 @@ public class UdpVehicleServerTest {
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
         server.addSensorListener(new SensorListener() {
             @Override
-            public void receivedSensor(SensorData data) {
+            public void receivedSensor(SensorData data, long id) {
                 latch.countDown();
             }
         });
@@ -385,54 +384,6 @@ public class UdpVehicleServerTest {
         // TODO review the generated test code and remove the default call to fail.
         //fail("The test case is a prototype.");
     }
-
-    /**
-     * Test of setSensorType method, of class UdpVehicleServer.
-     */
-    /*
-    @Test
-    public void testSetSensorType() {
-        int channel = 0;
-        SensorType type = null;
-        FunctionObserver<Void> obs = null;
-        //UdpVehicleServer instance = new UdpVehicleServer();
-        //instance.setSensorType(channel, type, obs);
-        // TODO review the generated test code and remove the default call to fail.
-        //fail("The test case is a prototype.");
-    }
-    */
-
-    /**
-     * Test of getSensorType method, of class UdpVehicleServer.
-     */
-    /*
-    @Test
-    public void testGetSensorType() {
-        int channel = 0;
-        FunctionObserver<SensorType> obs = null;
-        //UdpVehicleServer instance = new UdpVehicleServer();
-        //instance.getSensorType(channel, obs);
-        // TODO review the generated test code and remove the default call to fail.
-        //fail("The test case is a prototype.");
-    }
-    */
-
-    /**
-     * Test of getNumSensors method, of class UdpVehicleServer.
-     */
-    /*
-    @Test
-    public void testGetNumSensors() {
-        UdpVehicleServer instance = new UdpVehicleServer(serviceAddress);
-        VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
-
-        // Check that we got the right number of sensors
-        int nSensors = server.getNumSensors();
-        assertEquals("Incorrect sensor count.", sbs._sensorTypes.length, nSensors);
-
-        instance.shutdown();
-    }
-    */
 
     /**
      * Test of addVelocityListener method, of class UdpVehicleServer.

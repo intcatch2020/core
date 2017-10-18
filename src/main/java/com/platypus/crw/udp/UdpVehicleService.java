@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -58,7 +57,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
     protected final Map<SocketAddress, Integer> _poseListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Map<SocketAddress, Integer> _imageListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Map<SocketAddress, Integer> _cameraListeners = new LinkedHashMap<SocketAddress, Integer>();
-    //protected final Map<Integer, Map<SocketAddress,Integer>> _sensorListeners = new TreeMap<Integer, Map<SocketAddress, Integer>>();
     protected final Map<SocketAddress, Integer> _sensorListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Map<SocketAddress, Integer> _velocityListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Map<SocketAddress, Integer> _waypointListeners = new LinkedHashMap<SocketAddress, Integer>();
@@ -106,14 +104,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
         _vehicleServer.addVelocityListener(_handler);
         _vehicleServer.addWaypointListener(_handler);
         _vehicleServer.addCrumbListener(_handler);
-        _vehicleServer.addSensorListener(_handler);
-        /*
-        for (int i = 0; i < _vehicleServer.getNumSensors(); ++i) {
-            _vehicleServer.addSensorListener(i, _handler);
-        }
-        */
-        
-        
+        _vehicleServer.addSensorListener(_handler);        
     }
     
     private void unregister() {
@@ -124,11 +115,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
         _vehicleServer.removeWaypointListener(_handler);
         _vehicleServer.removeCrumbListener(_handler);
         _vehicleServer.removeSensorListener(_handler);
-        /*
-        for (int i = 0; i < _vehicleServer.getNumSensors(); ++i) {
-            _vehicleServer.removeSensorListener(i, _handler);
-        }
-        */
     }
     
     public final VehicleServer getServer() {
@@ -221,45 +207,10 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                         _udpServer.respond(resp); 
                     break;
                 case CMD_REGISTER_SENSOR_LISTENER:
-                    /*
-                    synchronized(_sensorListeners) {
-                        int channel = req.stream.readInt();
-                        
-                        // Retrive the sensor sublisteners
-                        Map<SocketAddress, Integer> _listeners = _sensorListeners.get(channel);
-                        if (_listeners == null) {
-                            _listeners = new LinkedHashMap<SocketAddress, Integer>();
-                            _sensorListeners.put(channel, _listeners);
-                        }
-                        
-                        // Add the address to the appropriate sublistener list
-                        _listeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
-                    }
-                    */
                     synchronized(_sensorListeners) {
                         _sensorListeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
                     }
                     break;
-                /*
-                case CMD_SET_SENSOR_TYPE:
-                    _vehicleServer.setSensorType(
-                            req.stream.readInt(),
-                            VehicleServer.SensorType.values()[Math.max(req.stream.readByte(),
-                                                              VehicleServer.SensorType.values().length - 1)]);
-                    if (resp.ticket != UdpConstants.NO_TICKET)
-                        _udpServer.respond(resp); // Send void response
-                    break;
-                case CMD_GET_SENSOR_TYPE:
-                    resp.stream.writeByte(_vehicleServer.getSensorType(req.stream.readInt()).ordinal());
-                    if (resp.ticket != UdpConstants.NO_TICKET)
-                        _udpServer.respond(resp); 
-                    break;
-                case CMD_GET_NUM_SENSORS:
-                    resp.stream.writeInt(_vehicleServer.getNumSensors());
-                    if (resp.ticket != UdpConstants.NO_TICKET)
-                        _udpServer.respond(resp);
-                    break;
-                */
                 case CMD_REGISTER_VELOCITY_LISTENER:
                     synchronized(_velocityListeners) {
                         _velocityListeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
@@ -386,6 +337,22 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp); // Send void response
                     break;
+                case CMD_ACK_CRUMB:
+                {
+                    long id = req.stream.readLong();
+                    _vehicleServer.acknowledgeCrumb(id);
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp); // Send void response
+                    break;
+                }
+                case CMD_ACK_SENSORDATA:
+                {
+                    long id = req.stream.readLong();
+                    _vehicleServer.acknowledgeSensorData(id);
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp); // Send void response
+                    break;
+                }
                 default:
                     String warning = "Ignoring unknown command: " + command;
                     logger.log(Level.WARNING, warning);
@@ -521,10 +488,9 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             }
         }
 
-        public void receivedSensor(SensorData sensor) {
+        public void receivedSensor(SensorData sensor, long index) {
             // Quickly check if anyone is listening
             synchronized(_sensorListeners) {
-                //if (!_sensorListeners.containsKey(sensor.channel)) return;
                 if (_sensorListeners.isEmpty()) return;
             }
             
@@ -533,11 +499,10 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                 Response resp = new Response(UdpConstants.NO_TICKET, DUMMY_ADDRESS);
                 resp.stream.writeUTF(UdpConstants.COMMAND.CMD_SEND_SENSOR.str);
                 UdpConstants.writeSensorData(resp.stream, sensor);
+                resp.stream.writeLong(index);
             
                 // Send to all listeners
                 synchronized(_sensorListeners) {
-                    //Map<SocketAddress, Integer> _listeners = _sensorListeners.get(sensor.channel);
-                    //_udpServer.bcast(resp, _listeners.keySet());
                     _udpServer.bcast(resp, _sensorListeners.keySet());
                 }
             } catch (IOException e) {
@@ -633,12 +598,6 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             updateRegistrations(_waypointListeners);
             updateRegistrations(_crumbListeners);
             updateRegistrations(_sensorListeners);
-            /*
-            synchronized(_sensorListeners) {
-                for (Map<SocketAddress, Integer> sensorListener : _sensorListeners.values())
-                    updateRegistrations(sensorListener);
-            }
-            */
         }
     };
 }

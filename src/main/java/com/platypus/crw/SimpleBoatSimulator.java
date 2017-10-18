@@ -79,7 +79,7 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
             reading.value = 0;
             reading.type = DataType.BATTERY;
             reading.latlng = new double[]{45.0, 10.0};
-            sendSensor(reading);
+            sendSensor(reading, 0);
             /*
             reading.type = SensorType.ES2;
 
@@ -352,6 +352,18 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     
     @Override
     public void newAutonomousPredicateMessage(String apm)
+    {
+        
+    }
+    
+    @Override
+    public void acknowledgeCrumb(long id)
+    {
+        
+    }
+    
+    @Override
+    public void acknowledgeSensorData(long id)
     {
         
     }

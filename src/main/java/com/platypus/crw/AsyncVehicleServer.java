@@ -2,7 +2,6 @@ package com.platypus.crw;
 
 import com.platypus.crw.FunctionObserver.FunctionError;
 import com.platypus.crw.VehicleServer.CameraState;
-import com.platypus.crw.VehicleServer.DataType;
 import com.platypus.crw.VehicleServer.WaypointState;
 import com.platypus.crw.data.Twist;
 import com.platypus.crw.data.UtmPose;
@@ -37,9 +36,7 @@ public interface AsyncVehicleServer {
 
   public void addSensorListener(SensorListener l, FunctionObserver<Void> obs);
   public void removeSensorListener(SensorListener l, FunctionObserver<Void> obs);
-  //public void setSensorType(int channel, SensorType type, FunctionObserver<Void> obs);
-  //public void getSensorType(int channel, FunctionObserver<SensorType> obs);
-  //public void getNumSensors(FunctionObserver<Integer> obs);
+  public void acknowledgeSensorData(long id, FunctionObserver<Void> obs);
 
   public void addVelocityListener(VelocityListener l, FunctionObserver<Void> obs);
   public void removeVelocityListener(VelocityListener l, FunctionObserver<Void> obs);
@@ -62,7 +59,9 @@ public interface AsyncVehicleServer {
   public void getGains(int axis, FunctionObserver<double[]> obs);
 
   public void addCrumbListener(CrumbListener l, FunctionObserver<Void> obs);
-  public void removeCrumbListener(CrumbListener l, FunctionObserver<Void> obs);        
+  public void removeCrumbListener(CrumbListener l, FunctionObserver<Void> obs);
+  public void acknowledgeCrumb(long id, FunctionObserver<Void> obs);
+  
   public void setHome(double[] home, FunctionObserver<Void> obs);
   public void getHome(FunctionObserver<double[]> obs);
   public void startGoHome(FunctionObserver<Void> obs);  
@@ -126,7 +125,18 @@ public interface AsyncVehicleServer {
                     if (obs != null) obs.completed(null);
                 }
             });
-        }        
+        }
+        
+        @Override
+        public void acknowledgeCrumb(final long id, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.acknowledgeCrumb(id);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }                
 
         @Override
         public void setPose(final UtmPose state, final FunctionObserver<Void> obs) {
@@ -262,43 +272,17 @@ public interface AsyncVehicleServer {
             }
           });
         }
-
-        /*
+        
         @Override
-        public void setSensorType(final int channel, final SensorType type, final FunctionObserver<Void> obs) {
-          executor.submit(new Runnable() {
-            @Override
-            public void run() {
-              server.setSensorType(channel, type);
-              if (obs != null) obs.completed(null);
-            }
-          });
+        public void acknowledgeSensorData(final long id, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.acknowledgeSensorData(id);
+                    if (obs != null) obs.completed(null);
+                }
+            });
         }
-
-        @Override
-        public void getSensorType(final int channel, final FunctionObserver<SensorType> obs) {
-          if (obs == null) return;
-
-          executor.submit(new Runnable() {
-            @Override
-            public void run() {
-              obs.completed(server.getSensorType(channel));
-            }
-          });
-        }        
-
-        @Override
-        public void getNumSensors(final FunctionObserver<Integer> obs) {
-          if (obs == null) return;
-
-          executor.submit(new Runnable() {
-            @Override
-            public void run() {
-              obs.completed(server.getNumSensors());
-            }
-          });
-        }
-        */
 
         @Override
         public void addVelocityListener(final VelocityListener l, final FunctionObserver<Void> obs) {
@@ -591,7 +575,14 @@ public interface AsyncVehicleServer {
             final Delayer<Void> delayer = new Delayer<Void>();
             server.removeCrumbListener(l, delayer);
             delayer.awaitResult();
-        }        
+        }
+        
+        @Override
+        public void acknowledgeCrumb(long id) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.acknowledgeCrumb(id, delayer);
+            delayer.awaitResult();
+        }
 
         @Override
         public void setPose(UtmPose state) {
@@ -676,30 +667,13 @@ public interface AsyncVehicleServer {
           server.removeSensorListener(l, delayer);
           delayer.awaitResult();
         }
-
-        /*
+        
         @Override
-        public void setSensorType(int channel, SensorType type) {
-          final Delayer<Void> delayer = new Delayer<Void>();
-          server.setSensorType(channel, type, delayer);
-          delayer.awaitResult();
+        public void acknowledgeSensorData(long id) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.acknowledgeSensorData(id, delayer);
+            delayer.awaitResult();
         }
-
-        @Override
-        public SensorType getSensorType(int channel) {
-          final Delayer<SensorType> delayer = new Delayer<SensorType>();
-          server.getSensorType(channel, delayer);
-          return delayer.awaitResult();
-        }
-
-        @Override
-        public int getNumSensors() {
-          final Delayer<Integer> delayer = new Delayer<Integer>();
-          server.getNumSensors(delayer);
-          Integer nSensors = delayer.awaitResult();
-          return (nSensors != null) ? nSensors : -1;
-        }
-        */
 
         @Override
         public void addVelocityListener(VelocityListener l) {

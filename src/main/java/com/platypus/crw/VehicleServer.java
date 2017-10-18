@@ -16,8 +16,6 @@ import com.platypus.crw.data.UtmPose;
  * @author Pras Velagapudi <psigen@gmail.com>
  */
 public interface VehicleServer {
-
-	//public enum SensorType { ANALOG, DIGITAL, ES2, HDS_DEPTH, HDS_TEMP, GPS,ATLAS_DO,ATLAS_PH, BATTERY, UNKNOWN };
         public enum DataType
         {
             UNKNOWN("?", "?"),
@@ -71,9 +69,7 @@ public interface VehicleServer {
 	
 	public void addSensorListener(SensorListener l);
 	public void removeSensorListener(SensorListener l);
-	//public void setSensorType(int channel, SensorType type);
-	//public SensorType getSensorType(int channel);
-	//public int getNumSensors();
+        public void acknowledgeSensorData(long id);
 	
 	public void addVelocityListener(VelocityListener l);
 	public void removeVelocityListener(VelocityListener l);
@@ -90,6 +86,7 @@ public interface VehicleServer {
 
 	public void addCrumbListener(CrumbListener l);
 	public void removeCrumbListener(CrumbListener l);
+        public void acknowledgeCrumb(long id);
 
 	public boolean isConnected();
 	public boolean isAutonomous();
@@ -103,4 +100,5 @@ public interface VehicleServer {
 	public void startGoHome();
         
         public void newAutonomousPredicateMessage(String apm);
+        
 }

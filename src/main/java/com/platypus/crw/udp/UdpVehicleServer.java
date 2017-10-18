@@ -268,28 +268,31 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     }
                     return;
                 case CMD_SEND_CRUMB:
+                {
                     double[] crumb = UdpConstants.readLatLng(req.stream);
-                    long index = req.stream.readLong();
-                    
+                    long index = req.stream.readLong();                    
                     synchronized (_crumbListeners) {
                         for (CrumbListener l : _crumbListeners) {
                             l.receivedCrumb(crumb, index);
                         }
                     }
                     return;
+                }
                 case CMD_SEND_SENSOR:
+                {
                     SensorData data = UdpConstants.readSensorData(req.stream);
+                    long index = req.stream.readLong();
                     synchronized (_sensorListeners) {
                         // If there is no list of listeners, there is nothing to notify
-                        //if (!_sensorListeners.containsKey(data.channel)) {
                         if (_sensorListeners.isEmpty()) return;
 
                         // Notify each listener in the appropriate list
                         for (SensorListener l : _sensorListeners) {
-                            l.receivedSensor(data);
+                            l.receivedSensor(data, index);
                         }
                     }
                     return;
+                }
                 case CMD_SEND_VELOCITY:
                     Twist twist = UdpConstants.readTwist(req.stream);
                     synchronized (_velocityListeners) {
@@ -325,15 +328,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_GET_CAMERA_STATUS:
                     obs.completed(CameraState.values()[req.stream.readByte()]);
                     return;
-                /*
-                case CMD_GET_SENSOR_TYPE:
-                    obs.completed(DataType.values()[Math.min(req.stream.readByte(),
-                                                               DataType.values().length - 1)]);
-                    return;
-                case CMD_GET_NUM_SENSORS:
-                    obs.completed(req.stream.readInt());
-                    return;
-                */    
                 case CMD_GET_VELOCITY:
                     obs.completed(UdpConstants.readTwist(req.stream));
                     return;
@@ -379,7 +373,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     obs.completed(clients);
                     return;                
                 case CMD_SET_POSE:
-                //case CMD_SET_SENSOR_TYPE:
                 case CMD_SET_VELOCITY:
                 case CMD_SET_AUTONOMOUS:
                 case CMD_SET_GAINS:
@@ -390,6 +383,8 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_SET_HOME:
                 case CMD_START_GO_HOME:
                 case CMD_NEW_AUTONOMOUS_PREDICATE_MSG:
+                case CMD_ACK_CRUMB:
+                case CMD_ACK_SENSORDATA:
                     obs.completed(null);
                     return;
                 default:
@@ -440,6 +435,34 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
         if (obs != null) {
             obs.completed(null);
+        }
+    }
+    
+    public void acknowledgeCrumb(long id, FunctionObserver<Void> obs) {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }
+        
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_ACK_CRUMB.str);
+            response.stream.writeLong(id);
+            if (obs != null) { 
+                _ticketMap.put(ticket, obs);
+                _udpServer.respond(response);
+            } else {
+                _udpServer.respond(response);
+            }
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
         }
     }
 
@@ -626,15 +649,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
 
     public void addSensorListener(SensorListener l, FunctionObserver<Void> obs) {
         synchronized (_sensorListeners) {
-            /*
-            // If there were no previous listeners for the channel, create a list
-            if (!_sensorListeners.containsKey(channel)) {
-                _sensorListeners.put(channel, new ArrayList<SensorListener>());
-            }
-
-            // Add the listener to the appropriate list
-            _sensorListeners.get(channel).add(l);
-            */
             _sensorListeners.add(l);
         }
         if (obs != null) {
@@ -645,7 +659,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     public void removeSensorListener(SensorListener l, FunctionObserver<Void> obs) {
         synchronized (_sensorListeners) {
             // If there is no list of listeners, there is nothing to remove
-            //if (!_sensorListeners.containsKey(channel)) {
             if (_sensorListeners.isEmpty()) return;
 
             // Remove the listener from the appropriate list
@@ -655,9 +668,8 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             obs.completed(null);
         }
     }
-
-    /*
-    public void setSensorType(int channel, SensorType type, FunctionObserver<Void> obs) {
+    
+    public void acknowledgeSensorData(long id, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
             if (obs != null) {
                 obs.failed(FunctionObserver.FunctionError.ERROR);
@@ -669,64 +681,21 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         
         try {
             Response response = new Response(ticket, _vehicleServer);
-            response.stream.writeUTF(UdpConstants.COMMAND.CMD_SET_SENSOR_TYPE.str);
-            response.stream.writeInt(channel);
-            response.stream.writeByte(type.ordinal());
-            if (obs != null) _ticketMap.put(ticket, obs);
-            _udpServer.respond(response);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_ACK_SENSORDATA.str);            
+            response.stream.writeLong(id);
+            if (obs != null) { 
+                _ticketMap.put(ticket, obs);
+                _udpServer.respond(response);
+            } else {
+                _udpServer.respond(response);
+            }
+            _udpServer.respond(response);            
         } catch (IOException e) {
-            // TODO: Should I also flag something somewhere?
             if (obs != null) {
                 obs.failed(FunctionObserver.FunctionError.ERROR);
             }
         }
     }
-    */
-
-    /*
-    public void getSensorType(int channel, FunctionObserver<DataType> obs) {
-        // This is a pure getter function, just do nothing if there is no one listening.
-        if (obs == null) return;
-
-        if (_vehicleServer == null) {
-            obs.failed(FunctionObserver.FunctionError.ERROR);
-            return;
-        }
-        
-        long ticket = _ticketCounter.incrementAndGet();
-        
-        try {
-            Response response = new Response(ticket, _vehicleServer);
-            response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_SENSOR_TYPE.str);
-            response.stream.writeInt(channel);
-            _ticketMap.put(ticket, obs);
-            _udpServer.respond(response);
-        } catch (IOException e) {
-            obs.failed(FunctionObserver.FunctionError.ERROR);
-        }
-    }    
-
-    public void getNumSensors(FunctionObserver<Integer> obs) {
-        // This is a pure getter function, just do nothing if there is no one listening.
-        if (obs == null) return;
-
-        if (_vehicleServer == null) {
-            obs.failed(FunctionObserver.FunctionError.ERROR);
-            return;
-        }
-        
-        long ticket = _ticketCounter.incrementAndGet();
-        
-        try {
-            Response response = new Response(ticket, _vehicleServer);
-            response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_NUM_SENSORS.str);
-            _ticketMap.put(ticket, obs);
-            _udpServer.respond(response);
-        } catch (IOException e) {
-            obs.failed(FunctionObserver.FunctionError.ERROR);
-        }
-    }
-    */
 
     public void addVelocityListener(VelocityListener l, FunctionObserver<Void> obs) {
         synchronized (_velocityListeners) {
@@ -948,7 +917,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     }
 
     public void isAutonomous(FunctionObserver<Boolean> obs) {
-        // This is a pure getter function, just do nothing if there is no one listening.
+        // This is a pure getter function, just do nothing if there is no one listening.        
         if (obs == null) return;
 
         if (_vehicleServer == null) {
@@ -968,7 +937,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         }
     }
 
-    public void setAutonomous(boolean auto, FunctionObserver<Void> obs) {
+    public void setAutonomous(boolean auto, FunctionObserver<Void> obs) {       
         if (_vehicleServer == null) {
             if (obs != null) {
                 obs.failed(FunctionObserver.FunctionError.ERROR);
@@ -1132,8 +1101,6 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             }
         }         
     }
-
-
     
     /**
      * Special function that queries the already-set registry to find the list
