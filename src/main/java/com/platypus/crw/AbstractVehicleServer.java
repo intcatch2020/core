@@ -104,6 +104,14 @@ public abstract class AbstractVehicleServer implements VehicleServer {
             }
         }
     }
+    
+    protected void sendRCOverride(boolean isRCOverrideOn) {
+        synchronized(_rcListeners) {
+            for (RCOverrideListener l: _rcListeners) {
+                l.rcOverrideUpdate(isRCOverrideOn);
+            }
+        }
+    }
 
     @Override
     public void addImageListener(ImageListener l) {
