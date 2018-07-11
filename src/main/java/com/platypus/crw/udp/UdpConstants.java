@@ -81,6 +81,8 @@ public class UdpConstants {
         CMD_REGISTER_CRUMB_LISTENER("RCL"),
         CMD_SEND_CRUMB("_B"),
         CMD_ACK_CRUMB("AC"),
+        CMD_REGISTER_RCOVER_LISTENER("RRC"),
+        CMD_SEND_RCOVER("_RC"),
         CMD_NEW_AUTONOMOUS_PREDICATE_MSG("APM");
 
         COMMAND(String s) {

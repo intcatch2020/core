@@ -7,8 +7,8 @@ import com.platypus.crw.ImageListener;
 import com.platypus.crw.PoseListener;
 import com.platypus.crw.SensorListener;
 import com.platypus.crw.CrumbListener;
+import com.platypus.crw.RCOverrideListener;
 import com.platypus.crw.VehicleServer.CameraState;
-import com.platypus.crw.VehicleServer.DataType;
 import com.platypus.crw.VehicleServer.WaypointState;
 import com.platypus.crw.VelocityListener;
 import com.platypus.crw.WaypointListener;
@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -74,6 +73,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     protected final List<CameraListener> _cameraListeners = new ArrayList<CameraListener>();
     protected final List<WaypointListener> _waypointListeners = new ArrayList<WaypointListener>();
     protected final List<CrumbListener> _crumbListeners = new ArrayList<CrumbListener>();
+    protected final List<RCOverrideListener> _rcListeners = new ArrayList<RCOverrideListener>();
 
     public UdpVehicleServer() {
         // Create a UDP server that will handle RPC
@@ -211,6 +211,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             registerListener(_waypointListeners, UdpConstants.COMMAND.CMD_REGISTER_WAYPOINT_LISTENER);
             registerListener(_crumbListeners, UdpConstants.COMMAND.CMD_REGISTER_CRUMB_LISTENER);
             registerListener(_sensorListeners, UdpConstants.COMMAND.CMD_REGISTER_SENSOR_LISTENER);
+            registerListener(_rcListeners, UdpConstants.COMMAND.CMD_REGISTER_RCOVER_LISTENER);
             /*
             // Special case to handle sensor listener channels
             synchronized (_sensorListeners) {
@@ -289,6 +290,18 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                         // Notify each listener in the appropriate list
                         for (SensorListener l : _sensorListeners) {
                             l.receivedSensor(data, index);
+                        }
+                    }
+                    return;
+                }
+                case CMD_SEND_RCOVER:
+                {
+                    boolean isRCOverrideOn = req.stream.readBoolean();
+                    synchronized (_rcListeners) {
+                        if (_rcListeners.isEmpty()) return;
+                        
+                        for (RCOverrideListener l : _rcListeners) {
+                            l.rcOverrideUpdate(isRCOverrideOn);
                         }
                     }
                     return;
@@ -465,6 +478,26 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             }
         }
     }
+    
+    public void addRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs) {
+        synchronized (_rcListeners) {
+            _rcListeners.add(l);
+        }
+        
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+
+    public void removeRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs) {
+        synchronized (_rcListeners) {
+            _rcListeners.remove(l);
+        }
+        
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }    
 
     public void setPose(UtmPose pose, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {

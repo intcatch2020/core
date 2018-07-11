@@ -7,6 +7,7 @@ import com.platypus.crw.ImageListener;
 import com.platypus.crw.PoseListener;
 import com.platypus.crw.SensorListener;
 import com.platypus.crw.CrumbListener;
+import com.platypus.crw.RCOverrideListener;
 import com.platypus.crw.VehicleServer;
 import com.platypus.crw.VehicleServer.CameraState;
 import com.platypus.crw.VehicleServer.WaypointState;
@@ -61,6 +62,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
     protected final Map<SocketAddress, Integer> _velocityListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Map<SocketAddress, Integer> _waypointListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Map<SocketAddress, Integer> _crumbListeners = new LinkedHashMap<SocketAddress, Integer>();
+    protected final Map<SocketAddress, Integer> _rcListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Timer _registrationTimer = new Timer();
 
     public UdpVehicleService(int port) {
@@ -104,7 +106,8 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
         _vehicleServer.addVelocityListener(_handler);
         _vehicleServer.addWaypointListener(_handler);
         _vehicleServer.addCrumbListener(_handler);
-        _vehicleServer.addSensorListener(_handler);        
+        _vehicleServer.addSensorListener(_handler);
+        _vehicleServer.addRCOverrideListener(_handler);
     }
     
     private void unregister() {
@@ -115,6 +118,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
         _vehicleServer.removeWaypointListener(_handler);
         _vehicleServer.removeCrumbListener(_handler);
         _vehicleServer.removeSensorListener(_handler);
+        _vehicleServer.removeRCOverrideListener(_handler);
     }
     
     public final VehicleServer getServer() {
@@ -209,6 +213,11 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                 case CMD_REGISTER_SENSOR_LISTENER:
                     synchronized(_sensorListeners) {
                         _sensorListeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
+                    }
+                    break;
+                case CMD_REGISTER_RCOVER_LISTENER:
+                    synchronized(_rcListeners) {
+                        _rcListeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
                     }
                     break;
                 case CMD_REGISTER_VELOCITY_LISTENER:
@@ -382,7 +391,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
     // TODO: Clean up old streams!!
     private final StreamHandler _handler = new StreamHandler();
     
-    private class StreamHandler implements PoseListener, ImageListener, CameraListener, SensorListener, VelocityListener, WaypointListener, CrumbListener {
+    private class StreamHandler implements PoseListener, ImageListener, CameraListener, SensorListener, VelocityListener, WaypointListener, CrumbListener, RCOverrideListener {
 
         public void receivedPose(UtmPose pose) {
             // Quickly check if anyone is listening
@@ -424,6 +433,25 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             } catch (IOException e) {
                 throw new RuntimeException("Failed to serialize crumb");
             }
+        }   
+        
+        public void rcOverrideUpdate(boolean isRCOverrideOn)
+        {
+            synchronized (_rcListeners) {
+                if (_rcListeners.isEmpty()) return;
+            }
+            
+            try {
+                Response resp = new Response(UdpConstants.NO_TICKET, DUMMY_ADDRESS);
+                resp.stream.writeUTF(UdpConstants.COMMAND.CMD_SEND_RCOVER.str);
+                resp.stream.writeBoolean(isRCOverrideOn);
+
+                synchronized (_rcListeners) {
+                    _udpServer.bcast(resp, _rcListeners.keySet());
+                }                    
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to serialize rc override update");
+            }            
         }
 
         public void receivedImage(byte[] image) {
@@ -598,6 +626,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             updateRegistrations(_waypointListeners);
             updateRegistrations(_crumbListeners);
             updateRegistrations(_sensorListeners);
+            updateRegistrations(_rcListeners);
         }
     };
 }
