@@ -87,6 +87,9 @@ public interface VehicleServer {
 	public void addCrumbListener(CrumbListener l);
 	public void removeCrumbListener(CrumbListener l);
         public void acknowledgeCrumb(long id);
+        
+        public void addRCOverrideListener(RCOverrideListener l);
+        public void removeRCOverrideListener(RCOverrideListener l);
 
 	public boolean isConnected();
 	public boolean isAutonomous();

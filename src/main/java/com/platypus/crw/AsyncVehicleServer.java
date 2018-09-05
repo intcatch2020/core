@@ -50,6 +50,9 @@ public interface AsyncVehicleServer {
   public void getWaypoints(FunctionObserver<double[][]> obs);
   public void getWaypointStatus(FunctionObserver<WaypointState> obs);
   public void getWaypointsIndex(FunctionObserver<Integer> obs);
+  
+  public void addRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs);
+  public void removeRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs);
 
   public void isConnected(FunctionObserver<Boolean> obs);
   public void isAutonomous(FunctionObserver<Boolean> obs);
@@ -136,7 +139,29 @@ public interface AsyncVehicleServer {
                     if (obs != null) obs.completed(null);
                 }
             });
-        }                
+        }
+        
+        @Override
+        public void addRCOverrideListener(final RCOverrideListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+               @Override
+               public void run() {
+                   server.addRCOverrideListener(l);
+                   if (obs != null) obs.completed(null);
+               }
+            });
+        }
+        
+        @Override
+        public void removeRCOverrideListener(final RCOverrideListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+               @Override
+               public void run() {
+                   server.removeRCOverrideListener(l);
+                   if (obs != null) obs.completed(null);
+               }
+            });
+        }        
 
         @Override
         public void setPose(final UtmPose state, final FunctionObserver<Void> obs) {
@@ -583,6 +608,20 @@ public interface AsyncVehicleServer {
             server.acknowledgeCrumb(id, delayer);
             delayer.awaitResult();
         }
+        
+        @Override
+        public void addRCOverrideListener(RCOverrideListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.addRCOverrideListener(l, delayer);
+            delayer.awaitResult();
+        }
+        
+        @Override
+        public void removeRCOverrideListener(RCOverrideListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.removeRCOverrideListener(l, delayer);
+            delayer.awaitResult();
+        }        
 
         @Override
         public void setPose(UtmPose state) {
