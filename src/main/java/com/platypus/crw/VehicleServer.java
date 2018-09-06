@@ -90,6 +90,9 @@ public interface VehicleServer {
         
         public void addRCOverrideListener(RCOverrideListener l);
         public void removeRCOverrideListener(RCOverrideListener l);
+        
+        public void addKeyValueListener(KeyValueListener l);
+        public void removeKeyValueListener(KeyValueListener l);
 
 	public boolean isConnected();
 	public boolean isAutonomous();

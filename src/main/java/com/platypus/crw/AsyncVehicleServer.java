@@ -53,6 +53,9 @@ public interface AsyncVehicleServer {
   
   public void addRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs);
   public void removeRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs);
+  
+  public void addKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs);
+  public void removeKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs);
 
   public void isConnected(FunctionObserver<Boolean> obs);
   public void isAutonomous(FunctionObserver<Boolean> obs);
@@ -159,6 +162,28 @@ public interface AsyncVehicleServer {
                public void run() {
                    server.removeRCOverrideListener(l);
                    if (obs != null) obs.completed(null);
+               }
+            });
+        }
+        
+        @Override
+        public void addKeyValueListener(final KeyValueListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+               @Override
+               public void run() {
+                   server.addKeyValueListener(l);
+                   if (obs != null) obs.completed(null);                   
+               }
+            });
+        }
+        
+        @Override
+        public void removeKeyValueListener(final KeyValueListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+               @Override
+               public void run() {
+                   server.removeKeyValueListener(l);
+                   if (obs != null) obs.completed(null);                   
                }
             });
         }        
@@ -622,6 +647,20 @@ public interface AsyncVehicleServer {
             server.removeRCOverrideListener(l, delayer);
             delayer.awaitResult();
         }        
+        
+        @Override
+        public void addKeyValueListener(KeyValueListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.addKeyValueListener(l, delayer);
+            delayer.awaitResult();
+        }
+        
+        @Override
+        public void removeKeyValueListener(KeyValueListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.removeKeyValueListener(l, delayer);
+            delayer.awaitResult();
+        }
 
         @Override
         public void setPose(UtmPose state) {

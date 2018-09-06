@@ -22,6 +22,7 @@ public abstract class AbstractVehicleServer implements VehicleServer {
     protected final List<WaypointListener> _waypointListeners = new ArrayList<WaypointListener>();
     protected final List<CrumbListener> _crumbListeners = new ArrayList<CrumbListener>();
     protected final List<RCOverrideListener> _rcListeners = new ArrayList<RCOverrideListener>();
+    protected final List<KeyValueListener> _keyValueListeners = new ArrayList<KeyValueListener>();
 
     @Override
     public double[] getGains(int axis) {
@@ -85,7 +86,21 @@ public abstract class AbstractVehicleServer implements VehicleServer {
         synchronized (_rcListeners) {
             _rcListeners.remove(l);
         }
-    }    
+    }
+    
+    @Override
+    public void addKeyValueListener(KeyValueListener l) {
+        synchronized (_keyValueListeners) {
+            _keyValueListeners.add(l);
+        }
+    }
+    
+    @Override 
+    public void removeKeyValueListener(KeyValueListener l) {
+        synchronized (_keyValueListeners) {
+            _keyValueListeners.remove(l);
+        }
+    }
 
     protected void sendState(UtmPose pose) {
         // Process the listeners last to first, notifying
@@ -109,6 +124,15 @@ public abstract class AbstractVehicleServer implements VehicleServer {
         synchronized(_rcListeners) {
             for (RCOverrideListener l: _rcListeners) {
                 l.rcOverrideUpdate(isRCOverrideOn);
+            }
+        }
+    }
+    
+    protected void sendKeyValue(String key, float value)
+    {
+        synchronized (_keyValueListeners) {
+            for (KeyValueListener l : _keyValueListeners) {
+                l.keyValueUpdate(key, value);
             }
         }
     }

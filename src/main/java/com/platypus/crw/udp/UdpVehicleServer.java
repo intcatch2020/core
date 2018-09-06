@@ -8,6 +8,7 @@ import com.platypus.crw.PoseListener;
 import com.platypus.crw.SensorListener;
 import com.platypus.crw.CrumbListener;
 import com.platypus.crw.RCOverrideListener;
+import com.platypus.crw.KeyValueListener;
 import com.platypus.crw.VehicleServer.CameraState;
 import com.platypus.crw.VehicleServer.WaypointState;
 import com.platypus.crw.VelocityListener;
@@ -74,6 +75,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     protected final List<WaypointListener> _waypointListeners = new ArrayList<WaypointListener>();
     protected final List<CrumbListener> _crumbListeners = new ArrayList<CrumbListener>();
     protected final List<RCOverrideListener> _rcListeners = new ArrayList<RCOverrideListener>();
+    protected final List<KeyValueListener> _keyValueListeners = new ArrayList<KeyValueListener>();
 
     public UdpVehicleServer() {
         // Create a UDP server that will handle RPC
@@ -212,6 +214,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             registerListener(_crumbListeners, UdpConstants.COMMAND.CMD_REGISTER_CRUMB_LISTENER);
             registerListener(_sensorListeners, UdpConstants.COMMAND.CMD_REGISTER_SENSOR_LISTENER);
             registerListener(_rcListeners, UdpConstants.COMMAND.CMD_REGISTER_RCOVER_LISTENER);
+            registerListener(_keyValueListeners, UdpConstants.COMMAND.CMD_REGISTER_KEYVALUE_LISTENER);
             /*
             // Special case to handle sensor listener channels
             synchronized (_sensorListeners) {
@@ -492,6 +495,26 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     public void removeRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs) {
         synchronized (_rcListeners) {
             _rcListeners.remove(l);
+        }
+        
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+    
+    public void addKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs) {
+        synchronized (_keyValueListeners) {
+            _keyValueListeners.add(l);
+        }
+        
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+    
+    public void removeKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs) {
+        synchronized (_keyValueListeners) {
+            _keyValueListeners.remove(l);
         }
         
         if (obs != null) {
