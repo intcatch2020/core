@@ -564,10 +564,12 @@ public class UdpVehicleServerTest {
 
         // Set to autonomous and back
         server.setAutonomous(true);
-        assertTrue("setAutonomy failed to turn on.", server.isAutonomous());
+        boolean autocheck = server.isAutonomous();
+        assertTrue("setAutonomy failed to turn on.", autocheck);
 
         server.setAutonomous(false);
-        assertFalse("setAutonomy failed to turn off.", server.isAutonomous());
+        autocheck = server.isAutonomous();
+        assertFalse("setAutonomy failed to turn off.", autocheck);
 
         instance.shutdown();
     }

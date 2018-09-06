@@ -309,6 +309,18 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     }
                     return;
                 }
+                case CMD_SEND_KEYVALUE:
+                {
+                    String key = req.stream.readUTF();
+                    float value = req.stream.readFloat();
+                    synchronized (_keyValueListeners) {
+                        if (_keyValueListeners.isEmpty()) return;
+                        for (KeyValueListener l : _keyValueListeners) {
+                            l.keyValueUpdate(key, value);
+                        }
+                    }
+                    return;
+                }
                 case CMD_SEND_VELOCITY:
                     Twist twist = UdpConstants.readTwist(req.stream);
                     synchronized (_velocityListeners) {
