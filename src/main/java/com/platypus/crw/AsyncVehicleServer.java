@@ -56,6 +56,7 @@ public interface AsyncVehicleServer {
   
   public void addKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs);
   public void removeKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs);
+  public void setKeyValue(String key, float value, FunctionObserver<Void> obs);
 
   public void isConnected(FunctionObserver<Boolean> obs);
   public void isAutonomous(FunctionObserver<Boolean> obs);
@@ -70,7 +71,7 @@ public interface AsyncVehicleServer {
   
   public void setHome(double[] home, FunctionObserver<Void> obs);
   public void getHome(FunctionObserver<double[]> obs);
-  public void startGoHome(FunctionObserver<Void> obs);  
+  public void startGoHome(FunctionObserver<Void> obs);
   
   public void newAutonomousPredicateMessage(String apm, FunctionObserver<Void> obs);          
 
@@ -552,6 +553,17 @@ public interface AsyncVehicleServer {
         }
         
         @Override
+        public void setKeyValue(final String key, final float value, final FunctionObserver<Void> obs) {
+          executor.submit(new Runnable() {
+            @Override
+            public void run() {
+              server.setKeyValue(key, value);
+              if (obs != null) obs.completed(null);
+            }
+          });
+        }        
+        
+        @Override
         public void newAutonomousPredicateMessage(final String apm, final FunctionObserver<Void> obs)
         {
             executor.submit(new Runnable() {
@@ -887,6 +899,13 @@ public interface AsyncVehicleServer {
             server.startGoHome(delayer);
             delayer.awaitResult();        
         }
+        
+        @Override
+        public void setKeyValue(String key, float value) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.setKeyValue(key, value, delayer);
+            delayer.awaitResult();
+        }                
         
         @Override
         public void newAutonomousPredicateMessage(String apm) {

@@ -93,6 +93,7 @@ public interface VehicleServer {
         
         public void addKeyValueListener(KeyValueListener l);
         public void removeKeyValueListener(KeyValueListener l);
+        public void setKeyValue(String key, float value);
 
 	public boolean isConnected();
 	public boolean isAutonomous();

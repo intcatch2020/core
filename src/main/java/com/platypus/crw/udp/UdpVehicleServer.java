@@ -413,6 +413,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_NEW_AUTONOMOUS_PREDICATE_MSG:
                 case CMD_ACK_CRUMB:
                 case CMD_ACK_SENSORDATA:
+                case CMD_SET_KEYVALUE:
                     obs.completed(null);
                     return;
                 default:
@@ -1144,6 +1145,30 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 obs.failed(FunctionObserver.FunctionError.ERROR);
             }
         }        
+    }
+    
+    public void setKeyValue(String key, float value, FunctionObserver<Void> obs) {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }
+        
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_SET_KEYVALUE.str);
+            response.stream.writeUTF(key);
+            response.stream.writeFloat(value);
+            if (obs != null) _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+        }
     }
     
     public void newAutonomousPredicateMessage(String apm, FunctionObserver<Void> obs)

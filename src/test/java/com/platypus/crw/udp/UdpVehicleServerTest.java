@@ -551,7 +551,8 @@ public class UdpVehicleServerTest {
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
 
         // Since we are using a test server, it should always be connected
-        assertTrue("Server claimed it was not connected", server.isConnected());
+        boolean isConnected = server.isConnected();
+        assertTrue("Server claimed it was not connected", isConnected);
     }
 
     /**

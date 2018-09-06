@@ -85,6 +85,7 @@ public class UdpConstants {
         CMD_SEND_RCOVER("_RC"),
         CMD_REGISTER_KEYVALUE_LISTENER("KVL"),
         CMD_SEND_KEYVALUE("_KV"),
+        CMD_SET_KEYVALUE("SKV"),
         CMD_NEW_AUTONOMOUS_PREDICATE_MSG("APM");
 
         COMMAND(String s) {
