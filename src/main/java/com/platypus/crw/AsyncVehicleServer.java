@@ -57,6 +57,7 @@ public interface AsyncVehicleServer {
   public void addKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs);
   public void removeKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs);
   public void setKeyValue(String key, float value, FunctionObserver<Void> obs);
+  public void getKeyValue(String key, FunctionObserver<Void> obs);
 
   public void isConnected(FunctionObserver<Boolean> obs);
   public void isAutonomous(FunctionObserver<Boolean> obs);
@@ -554,14 +555,25 @@ public interface AsyncVehicleServer {
         
         @Override
         public void setKeyValue(final String key, final float value, final FunctionObserver<Void> obs) {
-          executor.submit(new Runnable() {
-            @Override
-            public void run() {
-              server.setKeyValue(key, value);
-              if (obs != null) obs.completed(null);
-            }
-          });
-        }        
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                  server.setKeyValue(key, value);
+                  if (obs != null) obs.completed(null);
+                }
+            });
+        }
+        
+        @Override
+        public void getKeyValue(final String key, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.getKeyValue(key);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
         
         @Override
         public void newAutonomousPredicateMessage(final String apm, final FunctionObserver<Void> obs)
@@ -905,7 +917,14 @@ public interface AsyncVehicleServer {
             final Delayer<Void> delayer = new Delayer<Void>();
             server.setKeyValue(key, value, delayer);
             delayer.awaitResult();
-        }                
+        }      
+        
+        @Override
+        public void getKeyValue(String key) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.getKeyValue(key, delayer);
+            delayer.awaitResult();
+        }
         
         @Override
         public void newAutonomousPredicateMessage(String apm) {

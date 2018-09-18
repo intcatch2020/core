@@ -350,12 +350,22 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                         _udpServer.respond(resp); // Send void response
                     break;
                 case CMD_SET_KEYVALUE:
+                {
                     String key = req.stream.readUTF();
                     float value = req.stream.readFloat();
                     _vehicleServer.setKeyValue(key, value);
                     if (resp.ticket != UdpConstants.NO_TICKET)
                         _udpServer.respond(resp);
                     break;
+                }
+                case CMD_GET_KEYVALUE:
+                {
+                    String key = req.stream.readUTF();
+                    _vehicleServer.getKeyValue(key);
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp);                    
+                    break;
+                }
                 case CMD_NEW_AUTONOMOUS_PREDICATE_MSG:
                     String apm = req.stream.readUTF();
                     _vehicleServer.newAutonomousPredicateMessage(apm);

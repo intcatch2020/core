@@ -388,6 +388,9 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_GET_HOME:
                     obs.completed(UdpConstants.readLatLng(req.stream));
                     return;
+                case CMD_GET_KEYVALUE:
+                    obs.completed(req.stream.readFloat());
+                    return;
                 case CMD_LIST:
                     Map<SocketAddress, String> clients = new HashMap<SocketAddress, String>();
                     int numClients = req.stream.readInt();
@@ -1162,6 +1165,29 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             response.stream.writeUTF(UdpConstants.COMMAND.CMD_SET_KEYVALUE.str);
             response.stream.writeUTF(key);
             response.stream.writeFloat(value);
+            if (obs != null) _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+        }
+    }
+    
+    public void getKeyValue(String key, FunctionObserver<Void> obs) {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }
+        
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_KEYVALUE.str);
+            response.stream.writeUTF(key);
             if (obs != null) _ticketMap.put(ticket, obs);
             _udpServer.respond(response);
         } catch (IOException e) {

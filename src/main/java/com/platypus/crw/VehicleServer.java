@@ -36,6 +36,7 @@ public interface VehicleServer {
             TOC("TOC", "mg/L"),
             NITRATE("nitrate", "ug/L"),
             NITRITE("nitrite", "ug/L"),
+            PUMPED_VOLUME("pumped_volume", "mL"),
             DEPTH_LOWRANCE("depth", "m");
 
             String units;
@@ -94,6 +95,7 @@ public interface VehicleServer {
         public void addKeyValueListener(KeyValueListener l);
         public void removeKeyValueListener(KeyValueListener l);
         public void setKeyValue(String key, float value);
+        public void getKeyValue(String key);
 
 	public boolean isConnected();
 	public boolean isAutonomous();

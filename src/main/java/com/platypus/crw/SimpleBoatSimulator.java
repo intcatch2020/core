@@ -357,6 +357,12 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
     }
     
     @Override
+    public void getKeyValue(String key)
+    {
+        
+    }
+    
+    @Override
     public void newAutonomousPredicateMessage(String apm)
     {
         
