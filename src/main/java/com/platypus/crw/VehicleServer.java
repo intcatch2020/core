@@ -37,6 +37,7 @@ public interface VehicleServer {
             NITRATE("nitrate", "ug/L"),
             NITRITE("nitrite", "ug/L"),
             PUMPED_VOLUME("pumped_volume", "mL"),
+            VOLTAMMETRY_CURRENT("voltammetry current", "nA"),
             DEPTH_LOWRANCE("depth", "m");
 
             String units;
