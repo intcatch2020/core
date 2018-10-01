@@ -38,6 +38,10 @@ public interface VehicleServer {
             NITRITE("nitrite", "ug/L"),
             PUMPED_VOLUME("pumped_volume", "mL"),
             VOLTAMMETRY_CURRENT("voltammetry current", "nA"),
+            AMMONIUM("NH4", "mg/L"),
+            PHOSPHATE("PO4", "mg/L"),
+            CHEM_OXY_DEMAND("COD", "mgO/L"),
+            BIO_OXY_DEMAND("BOD", "mgO/L"),            
             DEPTH_LOWRANCE("depth", "m");
 
             String units;
