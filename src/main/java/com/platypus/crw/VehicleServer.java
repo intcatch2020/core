@@ -36,6 +36,12 @@ public interface VehicleServer {
             TOC("TOC", "mg/L"),
             NITRATE("nitrate", "ug/L"),
             NITRITE("nitrite", "ug/L"),
+            PUMPED_VOLUME("pumped_volume", "mL"),
+            VOLTAMMETRY_CURRENT("voltammetry current", "nA"),
+            AMMONIUM("NH4", "mg/L"),
+            PHOSPHATE("PO4", "mg/L"),
+            CHEM_OXY_DEMAND("COD", "mgO/L"),
+            BIO_OXY_DEMAND("BOD", "mgO/L"),            
             DEPTH_LOWRANCE("depth", "m");
 
             String units;
@@ -90,6 +96,11 @@ public interface VehicleServer {
         
         public void addRCOverrideListener(RCOverrideListener l);
         public void removeRCOverrideListener(RCOverrideListener l);
+        
+        public void addKeyValueListener(KeyValueListener l);
+        public void removeKeyValueListener(KeyValueListener l);
+        public void setKeyValue(String key, float value);
+        public void getKeyValue(String key);
 
 	public boolean isConnected();
 	public boolean isAutonomous();

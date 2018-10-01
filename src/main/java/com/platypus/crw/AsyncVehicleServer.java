@@ -53,6 +53,11 @@ public interface AsyncVehicleServer {
   
   public void addRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs);
   public void removeRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs);
+  
+  public void addKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs);
+  public void removeKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs);
+  public void setKeyValue(String key, float value, FunctionObserver<Void> obs);
+  public void getKeyValue(String key, FunctionObserver<Void> obs);
 
   public void isConnected(FunctionObserver<Boolean> obs);
   public void isAutonomous(FunctionObserver<Boolean> obs);
@@ -67,7 +72,7 @@ public interface AsyncVehicleServer {
   
   public void setHome(double[] home, FunctionObserver<Void> obs);
   public void getHome(FunctionObserver<double[]> obs);
-  public void startGoHome(FunctionObserver<Void> obs);  
+  public void startGoHome(FunctionObserver<Void> obs);
   
   public void newAutonomousPredicateMessage(String apm, FunctionObserver<Void> obs);          
 
@@ -159,6 +164,28 @@ public interface AsyncVehicleServer {
                public void run() {
                    server.removeRCOverrideListener(l);
                    if (obs != null) obs.completed(null);
+               }
+            });
+        }
+        
+        @Override
+        public void addKeyValueListener(final KeyValueListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+               @Override
+               public void run() {
+                   server.addKeyValueListener(l);
+                   if (obs != null) obs.completed(null);                   
+               }
+            });
+        }
+        
+        @Override
+        public void removeKeyValueListener(final KeyValueListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+               @Override
+               public void run() {
+                   server.removeKeyValueListener(l);
+                   if (obs != null) obs.completed(null);                   
                }
             });
         }        
@@ -527,6 +554,28 @@ public interface AsyncVehicleServer {
         }
         
         @Override
+        public void setKeyValue(final String key, final float value, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                  server.setKeyValue(key, value);
+                  if (obs != null) obs.completed(null);
+                }
+            });
+        }
+        
+        @Override
+        public void getKeyValue(final String key, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.getKeyValue(key);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
+        
+        @Override
         public void newAutonomousPredicateMessage(final String apm, final FunctionObserver<Void> obs)
         {
             executor.submit(new Runnable() {
@@ -622,6 +671,20 @@ public interface AsyncVehicleServer {
             server.removeRCOverrideListener(l, delayer);
             delayer.awaitResult();
         }        
+        
+        @Override
+        public void addKeyValueListener(KeyValueListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.addKeyValueListener(l, delayer);
+            delayer.awaitResult();
+        }
+        
+        @Override
+        public void removeKeyValueListener(KeyValueListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.removeKeyValueListener(l, delayer);
+            delayer.awaitResult();
+        }
 
         @Override
         public void setPose(UtmPose state) {
@@ -847,6 +910,20 @@ public interface AsyncVehicleServer {
             final Delayer<Void> delayer = new Delayer<Void>();
             server.startGoHome(delayer);
             delayer.awaitResult();        
+        }
+        
+        @Override
+        public void setKeyValue(String key, float value) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.setKeyValue(key, value, delayer);
+            delayer.awaitResult();
+        }      
+        
+        @Override
+        public void getKeyValue(String key) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.getKeyValue(key, delayer);
+            delayer.awaitResult();
         }
         
         @Override

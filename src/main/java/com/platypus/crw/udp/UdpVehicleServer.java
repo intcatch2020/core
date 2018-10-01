@@ -8,6 +8,7 @@ import com.platypus.crw.PoseListener;
 import com.platypus.crw.SensorListener;
 import com.platypus.crw.CrumbListener;
 import com.platypus.crw.RCOverrideListener;
+import com.platypus.crw.KeyValueListener;
 import com.platypus.crw.VehicleServer.CameraState;
 import com.platypus.crw.VehicleServer.WaypointState;
 import com.platypus.crw.VelocityListener;
@@ -74,6 +75,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     protected final List<WaypointListener> _waypointListeners = new ArrayList<WaypointListener>();
     protected final List<CrumbListener> _crumbListeners = new ArrayList<CrumbListener>();
     protected final List<RCOverrideListener> _rcListeners = new ArrayList<RCOverrideListener>();
+    protected final List<KeyValueListener> _keyValueListeners = new ArrayList<KeyValueListener>();
 
     public UdpVehicleServer() {
         // Create a UDP server that will handle RPC
@@ -212,6 +214,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             registerListener(_crumbListeners, UdpConstants.COMMAND.CMD_REGISTER_CRUMB_LISTENER);
             registerListener(_sensorListeners, UdpConstants.COMMAND.CMD_REGISTER_SENSOR_LISTENER);
             registerListener(_rcListeners, UdpConstants.COMMAND.CMD_REGISTER_RCOVER_LISTENER);
+            registerListener(_keyValueListeners, UdpConstants.COMMAND.CMD_REGISTER_KEYVALUE_LISTENER);
             /*
             // Special case to handle sensor listener channels
             synchronized (_sensorListeners) {
@@ -306,6 +309,18 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     }
                     return;
                 }
+                case CMD_SEND_KEYVALUE:
+                {
+                    String key = req.stream.readUTF();
+                    float value = req.stream.readFloat();
+                    synchronized (_keyValueListeners) {
+                        if (_keyValueListeners.isEmpty()) return;
+                        for (KeyValueListener l : _keyValueListeners) {
+                            l.keyValueUpdate(key, value);
+                        }
+                    }
+                    return;
+                }
                 case CMD_SEND_VELOCITY:
                     Twist twist = UdpConstants.readTwist(req.stream);
                     synchronized (_velocityListeners) {
@@ -373,6 +388,9 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_GET_HOME:
                     obs.completed(UdpConstants.readLatLng(req.stream));
                     return;
+                case CMD_GET_KEYVALUE:
+                    obs.completed(req.stream.readFloat());
+                    return;
                 case CMD_LIST:
                     Map<SocketAddress, String> clients = new HashMap<SocketAddress, String>();
                     int numClients = req.stream.readInt();
@@ -398,6 +416,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_NEW_AUTONOMOUS_PREDICATE_MSG:
                 case CMD_ACK_CRUMB:
                 case CMD_ACK_SENSORDATA:
+                case CMD_SET_KEYVALUE:
                     obs.completed(null);
                     return;
                 default:
@@ -492,6 +511,26 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     public void removeRCOverrideListener(RCOverrideListener l, FunctionObserver<Void> obs) {
         synchronized (_rcListeners) {
             _rcListeners.remove(l);
+        }
+        
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+    
+    public void addKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs) {
+        synchronized (_keyValueListeners) {
+            _keyValueListeners.add(l);
+        }
+        
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+    
+    public void removeKeyValueListener(KeyValueListener l, FunctionObserver<Void> obs) {
+        synchronized (_keyValueListeners) {
+            _keyValueListeners.remove(l);
         }
         
         if (obs != null) {
@@ -1109,6 +1148,53 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 obs.failed(FunctionObserver.FunctionError.ERROR);
             }
         }        
+    }
+    
+    public void setKeyValue(String key, float value, FunctionObserver<Void> obs) {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }
+        
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_SET_KEYVALUE.str);
+            response.stream.writeUTF(key);
+            response.stream.writeFloat(value);
+            if (obs != null) _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+        }
+    }
+    
+    public void getKeyValue(String key, FunctionObserver<Void> obs) {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }
+        
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_GET_KEYVALUE.str);
+            response.stream.writeUTF(key);
+            if (obs != null) _ticketMap.put(ticket, obs);
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+        }
     }
     
     public void newAutonomousPredicateMessage(String apm, FunctionObserver<Void> obs)

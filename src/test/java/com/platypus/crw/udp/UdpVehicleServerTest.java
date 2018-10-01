@@ -551,7 +551,8 @@ public class UdpVehicleServerTest {
         VehicleServer server = AsyncVehicleServer.Util.toSync(instance);
 
         // Since we are using a test server, it should always be connected
-        assertTrue("Server claimed it was not connected", server.isConnected());
+        boolean isConnected = server.isConnected();
+        assertTrue("Server claimed it was not connected", isConnected);
     }
 
     /**
@@ -564,10 +565,12 @@ public class UdpVehicleServerTest {
 
         // Set to autonomous and back
         server.setAutonomous(true);
-        assertTrue("setAutonomy failed to turn on.", server.isAutonomous());
+        boolean autocheck = server.isAutonomous();
+        assertTrue("setAutonomy failed to turn on.", autocheck);
 
         server.setAutonomous(false);
-        assertFalse("setAutonomy failed to turn off.", server.isAutonomous());
+        autocheck = server.isAutonomous();
+        assertFalse("setAutonomy failed to turn off.", autocheck);
 
         instance.shutdown();
     }
