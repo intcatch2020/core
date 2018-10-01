@@ -75,6 +75,8 @@ public class UdpConstants {
         CMD_SET_AUTONOMOUS("SA"),
         CMD_SET_GAINS("SG"),
         CMD_GET_GAINS("GG"),
+        CMD_REGISTER_HOME_LISTENER("RHL"),
+        CMD_SEND_HOME("_SH"),
         CMD_SET_HOME("SH"),
         CMD_GET_HOME("GH"),
         CMD_START_GO_HOME("SGH"),
@@ -86,7 +88,7 @@ public class UdpConstants {
         CMD_REGISTER_KEYVALUE_LISTENER("KVL"),
         CMD_SEND_KEYVALUE("_KV"),
         CMD_SET_KEYVALUE("SKV"),
-        CMD_GET_KEYVALUE("GKV"),
+        CMD_GET_KEYVALUE("GKV"),        
         CMD_NEW_AUTONOMOUS_PREDICATE_MSG("APM");
 
         COMMAND(String s) {

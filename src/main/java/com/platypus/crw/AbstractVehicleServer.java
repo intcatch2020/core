@@ -23,6 +23,7 @@ public abstract class AbstractVehicleServer implements VehicleServer {
     protected final List<CrumbListener> _crumbListeners = new ArrayList<CrumbListener>();
     protected final List<RCOverrideListener> _rcListeners = new ArrayList<RCOverrideListener>();
     protected final List<KeyValueListener> _keyValueListeners = new ArrayList<KeyValueListener>();
+    protected final List<HomeListener> _homeListeners = new ArrayList<HomeListener>();
 
     @Override
     public double[] getGains(int axis) {
@@ -101,6 +102,20 @@ public abstract class AbstractVehicleServer implements VehicleServer {
             _keyValueListeners.remove(l);
         }
     }
+    
+    @Override
+    public void addHomeListener(HomeListener l) {
+        synchronized (_homeListeners) {
+            _homeListeners.add(l);
+        }
+    }
+    
+    @Override
+    public void removeHomeListener(HomeListener l) {
+        synchronized (_homeListeners) {
+            _homeListeners.remove(l);
+        }
+    }
 
     protected void sendState(UtmPose pose) {
         // Process the listeners last to first, notifying
@@ -133,6 +148,14 @@ public abstract class AbstractVehicleServer implements VehicleServer {
         synchronized (_keyValueListeners) {
             for (KeyValueListener l : _keyValueListeners) {
                 l.keyValueUpdate(key, value);
+            }
+        }
+    }
+    
+    protected void sendHome(double[] home) {
+        synchronized (_homeListeners) {
+            for (HomeListener l : _homeListeners) {
+                l.receivedHome(home);
             }
         }
     }
