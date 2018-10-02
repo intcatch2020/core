@@ -70,6 +70,8 @@ public interface AsyncVehicleServer {
   public void removeCrumbListener(CrumbListener l, FunctionObserver<Void> obs);
   public void acknowledgeCrumb(long id, FunctionObserver<Void> obs);
   
+  public void addHomeListener(HomeListener l, FunctionObserver<Void> obs);
+  public void removeHomeListener(HomeListener l, FunctionObserver<Void> obs);
   public void setHome(double[] home, FunctionObserver<Void> obs);
   public void getHome(FunctionObserver<double[]> obs);
   public void startGoHome(FunctionObserver<Void> obs);
@@ -188,7 +190,29 @@ public interface AsyncVehicleServer {
                    if (obs != null) obs.completed(null);                   
                }
             });
-        }        
+        }
+        
+        @Override
+        public void addHomeListener(final HomeListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.addHomeListener(l);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
+        
+        @Override
+        public void removeHomeListener(final HomeListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.removeHomeListener(l);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
 
         @Override
         public void setPose(final UtmPose state, final FunctionObserver<Void> obs) {
@@ -683,6 +707,20 @@ public interface AsyncVehicleServer {
         public void removeKeyValueListener(KeyValueListener l) {
             final Delayer<Void> delayer = new Delayer<Void>();
             server.removeKeyValueListener(l, delayer);
+            delayer.awaitResult();
+        }
+        
+        @Override
+        public void addHomeListener(HomeListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.addHomeListener(l, delayer);
+            delayer.awaitResult();
+        }
+        
+        @Override
+        public void removeHomeListener(HomeListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.removeHomeListener(l, delayer);
             delayer.awaitResult();
         }
 

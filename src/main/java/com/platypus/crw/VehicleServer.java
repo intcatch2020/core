@@ -109,6 +109,8 @@ public interface VehicleServer {
 	public void setGains(int axis, double[] gains);
 	public double[] getGains(int axis);
 
+        public void addHomeListener(HomeListener l);
+        public void removeHomeListener(HomeListener l);
 	public void setHome(double[] home);
 	public double[] getHome();
 	public void startGoHome();

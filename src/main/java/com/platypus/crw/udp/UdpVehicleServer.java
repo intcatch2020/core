@@ -9,6 +9,7 @@ import com.platypus.crw.SensorListener;
 import com.platypus.crw.CrumbListener;
 import com.platypus.crw.RCOverrideListener;
 import com.platypus.crw.KeyValueListener;
+import com.platypus.crw.HomeListener;
 import com.platypus.crw.VehicleServer.CameraState;
 import com.platypus.crw.VehicleServer.WaypointState;
 import com.platypus.crw.VelocityListener;
@@ -76,6 +77,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     protected final List<CrumbListener> _crumbListeners = new ArrayList<CrumbListener>();
     protected final List<RCOverrideListener> _rcListeners = new ArrayList<RCOverrideListener>();
     protected final List<KeyValueListener> _keyValueListeners = new ArrayList<KeyValueListener>();
+    protected final List<HomeListener> _homeListeners = new ArrayList<HomeListener>();
 
     public UdpVehicleServer() {
         // Create a UDP server that will handle RPC
@@ -215,6 +217,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             registerListener(_sensorListeners, UdpConstants.COMMAND.CMD_REGISTER_SENSOR_LISTENER);
             registerListener(_rcListeners, UdpConstants.COMMAND.CMD_REGISTER_RCOVER_LISTENER);
             registerListener(_keyValueListeners, UdpConstants.COMMAND.CMD_REGISTER_KEYVALUE_LISTENER);
+            registerListener(_homeListeners, UdpConstants.COMMAND.CMD_REGISTER_HOME_LISTENER);
             /*
             // Special case to handle sensor listener channels
             synchronized (_sensorListeners) {
@@ -317,6 +320,17 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                         if (_keyValueListeners.isEmpty()) return;
                         for (KeyValueListener l : _keyValueListeners) {
                             l.keyValueUpdate(key, value);
+                        }
+                    }
+                    return;
+                }
+                case CMD_SEND_HOME:
+                {
+                    double[] home = UdpConstants.readLatLng(req.stream);
+                    synchronized (_homeListeners) {
+                        if (_homeListeners.isEmpty()) return;
+                        for (HomeListener l: _homeListeners) {
+                            l.receivedHome(home);
                         }
                     }
                     return;
@@ -536,7 +550,25 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
         if (obs != null) {
             obs.completed(null);
         }
-    }    
+    }
+    
+    public void addHomeListener(HomeListener l, FunctionObserver<Void> obs) {
+        synchronized (_homeListeners) {
+            _homeListeners.add(l);
+        }
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
+    
+    public void removeHomeListener(HomeListener l, FunctionObserver<Void> obs) {
+        synchronized (_homeListeners) {
+            _homeListeners.remove(l);
+        }
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }
 
     public void setPose(UtmPose pose, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {
