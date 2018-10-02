@@ -24,6 +24,7 @@ public abstract class AbstractVehicleServer implements VehicleServer {
     protected final List<RCOverrideListener> _rcListeners = new ArrayList<RCOverrideListener>();
     protected final List<KeyValueListener> _keyValueListeners = new ArrayList<KeyValueListener>();
     protected final List<HomeListener> _homeListeners = new ArrayList<HomeListener>();
+    protected final List<PointsOfInterestListener> _poiListeners = new ArrayList<PointsOfInterestListener>();
 
     @Override
     public double[] getGains(int axis) {
@@ -116,6 +117,22 @@ public abstract class AbstractVehicleServer implements VehicleServer {
             _homeListeners.remove(l);
         }
     }
+    
+    @Override
+    public void addPOIListener(PointsOfInterestListener l) {
+        synchronized (_poiListeners) {
+            _poiListeners.add(l);
+        }
+    }
+    
+    @Override
+    public void removePOIListener(PointsOfInterestListener l) {
+        synchronized (_poiListeners) {
+            _poiListeners.remove(l);
+        }
+    }  
+    
+    
 
     protected void sendState(UtmPose pose) {
         // Process the listeners last to first, notifying
@@ -156,6 +173,14 @@ public abstract class AbstractVehicleServer implements VehicleServer {
         synchronized (_homeListeners) {
             for (HomeListener l : _homeListeners) {
                 l.receivedHome(home);
+            }
+        }
+    }
+    
+    protected void sendPOI(double[] point, long index, String desc) {
+        synchronized (_poiListeners) {
+            for (PointsOfInterestListener l : _poiListeners) {
+                l.receivedPOI(point, index, desc);
             }
         }
     }

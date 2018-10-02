@@ -10,6 +10,7 @@ import com.platypus.crw.CrumbListener;
 import com.platypus.crw.RCOverrideListener;
 import com.platypus.crw.KeyValueListener;
 import com.platypus.crw.HomeListener;
+import com.platypus.crw.PointsOfInterestListener;
 import com.platypus.crw.VehicleServer.CameraState;
 import com.platypus.crw.VehicleServer.WaypointState;
 import com.platypus.crw.VelocityListener;
@@ -78,6 +79,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
     protected final List<RCOverrideListener> _rcListeners = new ArrayList<RCOverrideListener>();
     protected final List<KeyValueListener> _keyValueListeners = new ArrayList<KeyValueListener>();
     protected final List<HomeListener> _homeListeners = new ArrayList<HomeListener>();
+    protected final List<PointsOfInterestListener> _poiListeners = new ArrayList<PointsOfInterestListener>();
 
     public UdpVehicleServer() {
         // Create a UDP server that will handle RPC
@@ -218,6 +220,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             registerListener(_rcListeners, UdpConstants.COMMAND.CMD_REGISTER_RCOVER_LISTENER);
             registerListener(_keyValueListeners, UdpConstants.COMMAND.CMD_REGISTER_KEYVALUE_LISTENER);
             registerListener(_homeListeners, UdpConstants.COMMAND.CMD_REGISTER_HOME_LISTENER);
+            registerListener(_poiListeners, UdpConstants.COMMAND.CMD_REGISTER_POI_LISTENER);
             /*
             // Special case to handle sensor listener channels
             synchronized (_sensorListeners) {
@@ -335,6 +338,18 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     }
                     return;
                 }
+                case CMD_SEND_POI:
+                {
+                    double[] point = UdpConstants.readLatLng(req.stream);
+                    long index = req.stream.readLong();
+                    String desc = req.stream.readUTF();
+                    synchronized (_poiListeners) {
+                        for (PointsOfInterestListener l : _poiListeners) {
+                            l.receivedPOI(point, index, desc);
+                        }
+                    }
+                    return;
+                }                
                 case CMD_SEND_VELOCITY:
                     Twist twist = UdpConstants.readTwist(req.stream);
                     synchronized (_velocityListeners) {
@@ -429,6 +444,7 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                 case CMD_START_GO_HOME:
                 case CMD_NEW_AUTONOMOUS_PREDICATE_MSG:
                 case CMD_ACK_CRUMB:
+                case CMD_ACK_POI:
                 case CMD_ACK_SENSORDATA:
                 case CMD_SET_KEYVALUE:
                     obs.completed(null);
@@ -569,6 +585,52 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
             obs.completed(null);
         }
     }
+    
+    public void addPOIListener(PointsOfInterestListener l, FunctionObserver<Void> obs) {
+        synchronized (_poiListeners) {
+            _poiListeners.add(l);
+        }
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }    
+    
+    public void removePOIListener(PointsOfInterestListener l, FunctionObserver<Void> obs) {
+        synchronized (_poiListeners) {
+            _poiListeners.remove(l);
+        }
+        if (obs != null) {
+            obs.completed(null);
+        }
+    }        
+    
+    public void acknowledgePOI(long index, FunctionObserver<Void> obs) {
+        if (_vehicleServer == null) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+            return;
+        }
+        
+        long ticket = (obs == null) ? UdpConstants.NO_TICKET : _ticketCounter.incrementAndGet();
+        
+        try {
+            Response response = new Response(ticket, _vehicleServer);
+            response.stream.writeUTF(UdpConstants.COMMAND.CMD_ACK_POI.str);
+            response.stream.writeLong(index);
+            if (obs != null) { 
+                _ticketMap.put(ticket, obs);
+                _udpServer.respond(response);
+            } else {
+                _udpServer.respond(response);
+            }
+            _udpServer.respond(response);
+        } catch (IOException e) {
+            if (obs != null) {
+                obs.failed(FunctionObserver.FunctionError.ERROR);
+            }
+        }
+    }    
 
     public void setPose(UtmPose pose, FunctionObserver<Void> obs) {
         if (_vehicleServer == null) {

@@ -10,6 +10,7 @@ import com.platypus.crw.CrumbListener;
 import com.platypus.crw.RCOverrideListener;
 import com.platypus.crw.KeyValueListener;
 import com.platypus.crw.HomeListener;
+import com.platypus.crw.PointsOfInterestListener;
 import com.platypus.crw.VehicleServer;
 import com.platypus.crw.VehicleServer.CameraState;
 import com.platypus.crw.VehicleServer.WaypointState;
@@ -67,6 +68,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
     protected final Map<SocketAddress, Integer> _rcListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Map<SocketAddress, Integer> _keyValueListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Map<SocketAddress, Integer> _homeListeners = new LinkedHashMap<SocketAddress, Integer>();
+    protected final Map<SocketAddress, Integer> _poiListeners = new LinkedHashMap<SocketAddress, Integer>();
     protected final Timer _registrationTimer = new Timer();
 
     public UdpVehicleService(int port) {
@@ -114,6 +116,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
         _vehicleServer.addRCOverrideListener(_handler);
         _vehicleServer.addKeyValueListener(_handler);
         _vehicleServer.addHomeListener(_handler);
+        _vehicleServer.addPOIListener(_handler);
     }
     
     private void unregister() {
@@ -127,6 +130,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
         _vehicleServer.removeRCOverrideListener(_handler);
         _vehicleServer.removeKeyValueListener(_handler);
         _vehicleServer.removeHomeListener(_handler);
+        _vehicleServer.removePOIListener(_handler);
     }
     
     public final VehicleServer getServer() {
@@ -236,6 +240,11 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                 case CMD_REGISTER_HOME_LISTENER:
                     synchronized (_homeListeners) {
                         _homeListeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
+                    }
+                    break;
+                case CMD_REGISTER_POI_LISTENER:
+                    synchronized (_poiListeners) {
+                        _poiListeners.put(req.source, UdpConstants.REGISTRATION_TIMEOUT_COUNT);
                     }
                     break;
                 case CMD_REGISTER_VELOCITY_LISTENER:
@@ -389,6 +398,14 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                         _udpServer.respond(resp); // Send void response
                     break;
                 }
+                case CMD_ACK_POI:
+                {
+                    long index = req.stream.readLong();
+                    _vehicleServer.acknowledgePOI(index);
+                    if (resp.ticket != UdpConstants.NO_TICKET)
+                        _udpServer.respond(resp); // Send void response                    
+                    break;
+                }
                 case CMD_ACK_SENSORDATA:
                 {
                     long id = req.stream.readLong();
@@ -426,7 +443,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
     // TODO: Clean up old streams!!
     private final StreamHandler _handler = new StreamHandler();
     
-    private class StreamHandler implements PoseListener, ImageListener, CameraListener, SensorListener, VelocityListener, WaypointListener, CrumbListener, RCOverrideListener, KeyValueListener, HomeListener {
+    private class StreamHandler implements PoseListener, ImageListener, CameraListener, SensorListener, VelocityListener, WaypointListener, CrumbListener, RCOverrideListener, KeyValueListener, HomeListener, PointsOfInterestListener {
 
         public void receivedPose(UtmPose pose) {
             // Quickly check if anyone is listening
@@ -525,6 +542,28 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                 throw new RuntimeException("Failed to serialize home update");
             }
         }
+        
+        public void receivedPOI(double[] point, long index, String desc) {
+            synchronized (_poiListeners) {
+                if (_poiListeners.isEmpty()) return;
+            }
+
+            try {
+                // Construct message
+                Response resp = new Response(UdpConstants.NO_TICKET, DUMMY_ADDRESS);
+                resp.stream.writeUTF(UdpConstants.COMMAND.CMD_SEND_POI.str);
+                UdpConstants.writeLatLng(resp.stream, point);
+                resp.stream.writeLong(index);
+                resp.stream.writeUTF(desc);
+
+                // Send to all listeners
+                synchronized (_poiListeners) {
+                    _udpServer.bcast(resp, _poiListeners.keySet());
+                }                
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to serialize point of interest");
+            }
+        }          
 
         public void receivedImage(byte[] image) {
             // Quickly check if anyone is listening
@@ -701,6 +740,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             updateRegistrations(_rcListeners);
             updateRegistrations(_keyValueListeners);
             updateRegistrations(_homeListeners);
+            updateRegistrations(_poiListeners);
         }
     };
 }

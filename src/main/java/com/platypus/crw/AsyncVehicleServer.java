@@ -70,6 +70,10 @@ public interface AsyncVehicleServer {
   public void removeCrumbListener(CrumbListener l, FunctionObserver<Void> obs);
   public void acknowledgeCrumb(long id, FunctionObserver<Void> obs);
   
+  public void addPOIListener(PointsOfInterestListener l, FunctionObserver<Void> obs);
+  public void removePOIListener(PointsOfInterestListener l, FunctionObserver<Void> obs);
+  public void acknowledgePOI(long index, FunctionObserver<Void> obs);
+  
   public void addHomeListener(HomeListener l, FunctionObserver<Void> obs);
   public void removeHomeListener(HomeListener l, FunctionObserver<Void> obs);
   public void setHome(double[] home, FunctionObserver<Void> obs);
@@ -213,6 +217,39 @@ public interface AsyncVehicleServer {
                 }
             });
         }
+        
+        @Override
+        public void addPOIListener(final PointsOfInterestListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.addPOIListener(l);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
+        
+        @Override
+        public void removePOIListener(final PointsOfInterestListener l, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.removePOIListener(l);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }
+        
+        @Override
+        public void acknowledgePOI(final long index, final FunctionObserver<Void> obs) {
+            executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    server.acknowledgePOI(index);
+                    if (obs != null) obs.completed(null);
+                }
+            });
+        }        
 
         @Override
         public void setPose(final UtmPose state, final FunctionObserver<Void> obs) {
@@ -723,6 +760,27 @@ public interface AsyncVehicleServer {
             server.removeHomeListener(l, delayer);
             delayer.awaitResult();
         }
+        
+        @Override
+        public void addPOIListener(PointsOfInterestListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.addPOIListener(l, delayer);
+            delayer.awaitResult();
+        }
+        
+        @Override
+        public void removePOIListener(PointsOfInterestListener l) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.removePOIListener(l, delayer);
+            delayer.awaitResult();
+        }      
+        
+        @Override
+        public void acknowledgePOI(long index) {
+            final Delayer<Void> delayer = new Delayer<Void>();
+            server.acknowledgePOI(index, delayer);
+            delayer.awaitResult();
+        }        
 
         @Override
         public void setPose(UtmPose state) {

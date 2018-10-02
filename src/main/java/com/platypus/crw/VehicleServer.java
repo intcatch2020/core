@@ -115,6 +115,10 @@ public interface VehicleServer {
 	public double[] getHome();
 	public void startGoHome();
         
+        public void addPOIListener(PointsOfInterestListener l);
+        public void removePOIListener(PointsOfInterestListener l);
+        public void acknowledgePOI(long index);
+        
         public void newAutonomousPredicateMessage(String apm);
         
 }

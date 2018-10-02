@@ -380,6 +380,12 @@ public class SimpleBoatSimulator extends AbstractVehicleServer {
         
     }
     
+    @Override
+    public void acknowledgePOI(long index)
+    {
+        
+    }
+    
     /**
      * Terminates internal update processes and threads.
      */

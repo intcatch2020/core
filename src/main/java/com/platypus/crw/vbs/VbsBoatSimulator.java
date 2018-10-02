@@ -203,6 +203,12 @@ public class VbsBoatSimulator extends AbstractVehicleServer {
     }
     
     @Override
+    public void acknowledgePOI(long index)
+    {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+    
+    @Override
     public void acknowledgeSensorData(long id)
     {
         throw new UnsupportedOperationException("Not implemented yet");
