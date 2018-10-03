@@ -543,7 +543,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
             }
         }
         
-        public void receivedPOI(double[] point, long index, String desc) {
+        public void receivedPOI(double[] point, long index, String desc, int map_marker_type) {
             synchronized (_poiListeners) {
                 if (_poiListeners.isEmpty()) return;
             }
@@ -555,6 +555,7 @@ public class UdpVehicleService implements UdpServer.RequestHandler {
                 UdpConstants.writeLatLng(resp.stream, point);
                 resp.stream.writeLong(index);
                 resp.stream.writeUTF(desc);
+                resp.stream.writeInt(map_marker_type);
 
                 // Send to all listeners
                 synchronized (_poiListeners) {

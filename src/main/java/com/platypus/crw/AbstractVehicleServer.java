@@ -177,10 +177,10 @@ public abstract class AbstractVehicleServer implements VehicleServer {
         }
     }
     
-    protected void sendPOI(double[] point, long index, String desc) {
+    protected void sendPOI(double[] point, long index, String desc, int map_marker_type) {
         synchronized (_poiListeners) {
             for (PointsOfInterestListener l : _poiListeners) {
-                l.receivedPOI(point, index, desc);
+                l.receivedPOI(point, index, desc, map_marker_type);
             }
         }
     }

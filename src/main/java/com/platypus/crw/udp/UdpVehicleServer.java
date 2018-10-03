@@ -343,9 +343,10 @@ public class UdpVehicleServer implements AsyncVehicleServer, UdpServer.RequestHa
                     double[] point = UdpConstants.readLatLng(req.stream);
                     long index = req.stream.readLong();
                     String desc = req.stream.readUTF();
+                    int map_marker_type = req.stream.readInt();
                     synchronized (_poiListeners) {
                         for (PointsOfInterestListener l : _poiListeners) {
-                            l.receivedPOI(point, index, desc);
+                            l.receivedPOI(point, index, desc, map_marker_type);
                         }
                     }
                     return;
