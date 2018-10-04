@@ -84,4 +84,8 @@ public class UtmPose implements Serializable, Cloneable {
         }
         return true;
     }
+    
+    public boolean isDefault() {
+        return this.equals(new UtmPose());
+    }
 }
