@@ -56,6 +56,19 @@ public interface VehicleServer {
             public String getUnits() { return units; }
             public String getType() { return type; }
         }
+        
+        public enum MapMarkerTypes
+        {
+            VEHICLE,
+            WAYPOINT,
+            HOME,
+            BREADCRUMB,
+            HOMEPATH,
+            INTERESTING,
+            SENSORDATA,
+            OPERATOR
+        }        
+        
 	public enum WaypointState { GOING, PAUSED, DONE, CANCELLED, OFF, UNKNOWN };
 	public enum CameraState { CAPTURING, DONE, CANCELLED, OFF, UNKNOWN };
 
